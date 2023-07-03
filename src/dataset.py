@@ -168,6 +168,7 @@ class DatasetLoader:
     def load_fakenewsnet(self,
                          path="fakenewsnet/politifact",
                          join_context=True,
+                         drop_if_less_than_num_contexts: Optional[int]=None,
                          drop_empty_title=True,
                          drop_empty_text=True,
                          drop_unknown_publish=True):
@@ -203,6 +204,9 @@ class DatasetLoader:
                         if ctx_path.exists():
                             with open(ctx_path) as f_ctx:
                                 ctx = ContextItem.from_dict(json.load(f_ctx))
+                            num_articles = int(ctx.article1 is not None) + int(ctx.article2 is not None) + int(ctx.article3 is not None)
+                            if drop_if_less_than_num_contexts is not None and num_articles < drop_if_less_than_num_contexts:
+                                continue
                             if ctx.article1:
                                 item.ctx1_url = ctx.article1.url
                                 item.ctx1_title = ctx.article1.title
@@ -215,6 +219,9 @@ class DatasetLoader:
                                 item.ctx3_url = ctx.article3.url
                                 item.ctx3_title = ctx.article3.title
                                 item.ctx3_content = ctx.article3.content
+                        elif drop_if_less_than_num_contexts is not None:
+                            # We have 0 contexts
+                            continue
                     dataset.append(item)
         return FakeNewsNetDataset(dataset)
 
