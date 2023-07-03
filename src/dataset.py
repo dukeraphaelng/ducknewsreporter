@@ -23,16 +23,32 @@ class FakeNewsNetItem:
     url: str
     label: Label
 
+    ctx1_url: Optional[str] = None
+    ctx1_title: Optional[str] = None
+    ctx1_content: Optional[str] = None
+
+    ctx2_url: Optional[str] = None
+    ctx2_title: Optional[str] = None
+    ctx2_content: Optional[str] = None
+
+    ctx3_url: Optional[str] = None
+    ctx3_title: Optional[str] = None
+    ctx3_content: Optional[str] = None
+
 
 @dataclass
 class FakeNewsNetDataset:
     inner: List[FakeNewsNetItem]
 
     def as_pandas(self):
-        return pd.DataFrame(
+        df = pd.DataFrame(
             data=self.inner,
-            columns=("id", "title", "content", "published", "url", "label")
+            columns=("id", "title", "content", "published", "url", "label",
+                     "ctx1_url", "ctx1_title", "ctx1_content",
+                     "ctx2_url", "ctx2_title", "ctx2_content",
+                     "ctx3_url", "ctx3_title", "ctx3_content")
         )
+        return df.fillna(value=pd.NA)
 
 
 @dataclass
@@ -149,12 +165,17 @@ class DatasetLoader:
         return dataset
 
 
-    def load_fakenewsnet(self, path="fakenewsnet/politifact", drop_empty_title=True, drop_empty_text=True, drop_unknown_publish=True):
-        path = Path(self.base_path).joinpath(path)
-        if not path.exists():
+    def load_fakenewsnet(self,
+                         path="fakenewsnet/politifact",
+                         join_context=True,
+                         drop_empty_title=True,
+                         drop_empty_text=True,
+                         drop_unknown_publish=True):
+        base_path = Path(self.base_path).joinpath(path)
+        if not base_path.exists():
             raise "Dataset path does not exist"
         dataset = []
-        for path, label in [(path.joinpath("real"), Label.REAL), (path.joinpath("fake"), Label.FAKE)]:
+        for path, label in [(base_path.joinpath("real"), Label.REAL), (base_path.joinpath("fake"), Label.FAKE)]:
             for id in os.listdir(path):
                 with open(path.joinpath(id)) as f:
                     f_json = json.load(f)
@@ -177,6 +198,23 @@ class DatasetLoader:
                     )
                     if (drop_empty_title and not item.title) or (drop_empty_text and not item.content):
                         continue
+                    if join_context:
+                        ctx_path = base_path.joinpath("context").joinpath(id)
+                        if ctx_path.exists():
+                            with open(ctx_path) as f_ctx:
+                                ctx = ContextItem.from_dict(json.load(f_ctx))
+                            if ctx.article1:
+                                item.ctx1_url = ctx.article1.url
+                                item.ctx1_title = ctx.article1.title
+                                item.ctx1_content = ctx.article1.content
+                            if ctx.article2:
+                                item.ctx2_url = ctx.article2.url
+                                item.ctx2_title = ctx.article2.title
+                                item.ctx2_content = ctx.article2.content
+                            if ctx.article3:
+                                item.ctx3_url = ctx.article3.url
+                                item.ctx3_title = ctx.article3.title
+                                item.ctx3_content = ctx.article3.content
                     dataset.append(item)
         return FakeNewsNetDataset(dataset)
 
