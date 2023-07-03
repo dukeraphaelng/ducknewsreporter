@@ -1,46 +1,76 @@
-import re
+from typing import Any, List, Tuple
 
 from gensim import corpora
 from gensim.models import LdaModel
-from nltk.corpus import stopwords
 
-# Can only be called once to make it thread-safe
-stopwords.ensure_loaded()
+from preprocess import Preprocessor
+
 
 class TextRankExtractor:
+    def __init__(self):
+        # Punctuation is removed since we don't want punctuation to be a possible keyword.
+        self.preprocessor = Preprocessor(remove_punctuation=True)
+    
+    def extract_main_themes(self, content: str,
+                            num_words=10,
+                            num_topics=1) -> Tuple[List[Any], str]:
+        """Extract the main themes out of the content in a news article.
 
-    def extract_main_themes(self, content: str, num_keywords=10):
-        documents = content.split('\n')
+        Args:
+            content (str): The news article
+            num_words (int, optional): The number of keywords to consider per topic. Defaults to 10.
+            num_topics (int, optional): The number of topics to consider. Defaults to 1.
 
-        texts = [[token for token in document.lower().split()] for document in documents]
+        Returns:
+            Tuple[List[Any], str]: A tuple consisting of the main themes
+            extracted from the content and the string summary of length
+            num_words of the topics.
+        """
+        documents = list(map(self.preprocessor.preprocess_and_tokenize, content.split("\n")))
+        dictionary = corpora.Dictionary(documents)
 
-        stop_words = stopwords.words("english")
-        texts = [[token for token in text if token not in stop_words] for text in texts]
+        corpus = list(map(dictionary.doc2bow, documents))
 
-        dictionary = corpora.Dictionary(texts)
-        corpus = [dictionary.doc2bow(text) for text in texts]
+        lda_model = LdaModel(
+            corpus,
+            num_topics=num_topics,
+            id2word=dictionary,
+            passes=20,
+            # Reproducible
+            random_state=42
+        )
 
-        num_topics = 1
-        lda_model = LdaModel(corpus, num_topics=num_topics, id2word=dictionary, passes=20)
+        main_themes = lda_model.show_topics(
+            num_topics=num_topics,
+            num_words=num_words,
+            formatted=False
+        )
 
-        main_themes = lda_model.print_topics(num_topics=num_topics, num_words=10)
+        all_keywords = []
+        for topic_id, words in main_themes:
+            all_keywords.extend(words)
+        
+        # Sort by decreasing probability
+        all_keywords.sort(key=lambda p: p[1], reverse=True)
 
-        all_themes = []
-        for theme_tuple in main_themes:
-            _, theme_tuple = theme_tuple
-            theme_tuple = re.sub(r"[^a-zA-Z\'\’]", " ", theme_tuple)
-            
-            for theme in theme_tuple.split(" "):
-                if theme:
-                    all_themes.append(theme)
+        # Deduplicate keywords from all topics and select by probability. Only take
+        # num_words amount of words.
+        keywords = []
+        for word, proba in all_keywords:
+            if word in keywords:
+                # Deduplication
+                continue
+            keywords.append(word)
+            if len(keywords) >= num_words:
+                break
 
-        return main_themes, " ".join(all_themes[:num_keywords])
+        return main_themes, " ".join(keywords)
 
 
 if __name__ == "__main__":
     import sys
-    print("Text to extract context: ", end="")
+    print("Text to extract context from: ", end="", flush=True)
     content = sys.stdin.read()
-    main_themes, summary_string = TextRankExtractor().extract_main_themes(content, num_keywords=10)
+    main_themes, summary_string = TextRankExtractor().extract_main_themes(content)
     print(main_themes)
     print(summary_string)
