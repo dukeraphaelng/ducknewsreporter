@@ -13,13 +13,17 @@ class TextRankExtractor:
     
     def extract_main_themes(self, content: str,
                             num_words=10,
-                            num_topics=1) -> Tuple[List[Any], str]:
+                            num_topics=1,
+                            ignore_numerical_keywords=True) -> Tuple[List[Any], str]:
         """Extract the main themes out of the content in a news article.
 
         Args:
             content (str): The news article
             num_words (int, optional): The number of keywords to consider per topic. Defaults to 10.
             num_topics (int, optional): The number of topics to consider. Defaults to 1.
+            ignore_numerical_keywords (bool, optional): Whether to return
+            keywords which are just numbers. Keywords which are just dates or
+            money values can sometimes not be useful. Defaults to False.
 
         Returns:
             Tuple[List[Any], str]: A tuple consisting of the main themes
@@ -46,7 +50,7 @@ class TextRankExtractor:
             formatted=False
         )
 
-        all_keywords = []
+        all_keywords: List[Tuple[str, float]] = []
         for topic_id, words in main_themes:
             all_keywords.extend(words)
         
@@ -59,6 +63,8 @@ class TextRankExtractor:
         for word, proba in all_keywords:
             if word in keywords:
                 # Deduplication
+                continue
+            if ignore_numerical_keywords and word.isnumeric():
                 continue
             keywords.append(word)
             if len(keywords) >= num_words:
