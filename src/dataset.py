@@ -5,13 +5,17 @@ import os
 import re
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 from newspaper import Article, article
 
-from utils import Label
+
+class FakeNewsNetLabel(Enum):
+    FAKE = 0
+    REAL = 1
 
 
 @dataclass
@@ -21,7 +25,7 @@ class FakeNewsNetItem:
     content: str
     published: datetime
     url: str
-    label: Label
+    label: FakeNewsNetLabel
 
     ctx1_url: Optional[str] = None
     ctx1_title: Optional[str] = None
@@ -176,7 +180,7 @@ class DatasetLoader:
         if not base_path.exists():
             raise "Dataset path does not exist"
         dataset = []
-        for path, label in [(base_path.joinpath("real"), Label.REAL), (base_path.joinpath("fake"), Label.FAKE)]:
+        for path, label in [(base_path.joinpath("real"), FakeNewsNetLabel.REAL), (base_path.joinpath("fake"), FakeNewsNetLabel.FAKE)]:
             for id in os.listdir(path):
                 with open(path.joinpath(id)) as f:
                     f_json = json.load(f)
