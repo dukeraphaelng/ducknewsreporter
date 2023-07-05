@@ -11,7 +11,7 @@ from typing import Dict, List, Optional, Tuple
 import pandas as pd
 from newspaper import Article, article
 
-from utils import Label
+from .utils import Label
 
 
 @dataclass
@@ -174,7 +174,7 @@ class DatasetLoader:
                          drop_unknown_publish=True):
         base_path = Path(self.base_path).joinpath(path)
         if not base_path.exists():
-            raise "Dataset path does not exist"
+            raise ValueError("Dataset path does not exist")
         dataset = []
         for path, label in [(base_path.joinpath("real"), Label.REAL), (base_path.joinpath("fake"), Label.FAKE)]:
             for id in os.listdir(path):
