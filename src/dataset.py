@@ -11,6 +11,7 @@ from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 from newspaper import Article, article
+from tqdm import tqdm
 
 
 class FakeOrRealLabel(Enum):
@@ -136,7 +137,8 @@ class DatasetLoader:
     def download_context_articles(self,
                                   threads: Optional[int]=None,
                                   csv_path="Horne2017_FakeNewsData/Buzzfeed/context.csv",
-                                  write_path="Horne2017_FakeNewsData/Buzzfeed/context"):
+                                  write_path="Horne2017_FakeNewsData/Buzzfeed/context",
+                                  quiet=False):
         """Downloads the up to 3 articles from a csv that describes a linked
         foreign id and 3 html article urls. WARNING: May take a long time.
 
@@ -161,7 +163,7 @@ class DatasetLoader:
         base_path = Path(self.base_path).joinpath(write_path)
         os.makedirs(base_path, exist_ok=True)
         with mp.Pool(threads) as pool:
-            for it in pool.map(ContextItem.download, manifest):
+            for it in tqdm(pool.imap_unordered(ContextItem.download, manifest), desc="Downloading articles", total=len(manifest), disable=quiet):
                 dataset[it.foreign_id] = it
                 path = base_path.joinpath(f"{it.foreign_id}.json")
                 with open(path, "w") as f:
