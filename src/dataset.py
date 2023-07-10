@@ -5,23 +5,28 @@ import os
 import re
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 from newspaper import Article, article
+from tqdm import tqdm
 
-from utils import Label
+
+class FakeOrRealLabel(Enum):
+    FAKE = 0
+    REAL = 1
 
 
 @dataclass
-class FakeNewsNetItem:
+class DataItem:
     id: str
     title: str
     content: str
-    published: datetime
-    url: str
-    label: Label
+    published: Optional[datetime]
+    url: Optional[str]
+    label: FakeOrRealLabel
 
     ctx1_url: Optional[str] = None
     ctx1_title: Optional[str] = None
@@ -37,8 +42,8 @@ class FakeNewsNetItem:
 
 
 @dataclass
-class FakeNewsNetDataset:
-    inner: List[FakeNewsNetItem]
+class Dataset:
+    inner: List[DataItem]
 
     def as_pandas(self):
         df = pd.DataFrame(
@@ -131,8 +136,9 @@ class DatasetLoader:
     
     def download_context_articles(self,
                                   threads: Optional[int]=None,
-                                  csv_path="fakenewsnet/politifact/context.csv",
-                                  write_path="fakenewsnet/politifact/context"):
+                                  csv_path="Horne2017_FakeNewsData/Buzzfeed/context.csv",
+                                  write_path="Horne2017_FakeNewsData/Buzzfeed/context",
+                                  quiet=False):
         """Downloads the up to 3 articles from a csv that describes a linked
         foreign id and 3 html article urls. WARNING: May take a long time.
 
@@ -157,13 +163,64 @@ class DatasetLoader:
         base_path = Path(self.base_path).joinpath(write_path)
         os.makedirs(base_path, exist_ok=True)
         with mp.Pool(threads) as pool:
-            for it in pool.map(ContextItem.download, manifest):
+            for it in tqdm(pool.imap_unordered(ContextItem.download, manifest), desc="Downloading articles", total=len(manifest), disable=quiet):
                 dataset[it.foreign_id] = it
                 path = base_path.joinpath(f"{it.foreign_id}.json")
                 with open(path, "w") as f:
                     json.dump(it.as_dict(), f)
         return dataset
 
+    def load_horne2017_fakenewsdata(self,
+                        path="Horne2017_FakeNewsData/Buzzfeed",
+                        join_context=True,
+                        drop_if_less_than_num_contexts: Optional[int]=None):
+        base_path = Path(self.base_path).joinpath(path)
+        if not base_path.exists():
+            raise "Dataset path does not exist"
+        dataset = []
+        paths = [
+            (base_path.joinpath("Real"), base_path.joinpath("Real_titles"), FakeOrRealLabel.REAL),
+            (base_path.joinpath("Fake"), base_path.joinpath("Fake_titles"), FakeOrRealLabel.FAKE)
+        ]
+        for content_path, title_path, label in paths:
+            for id in os.listdir(content_path):
+                with open(content_path.joinpath(id)) as f:
+                    content = f.read()
+                with open(title_path.joinpath(id)) as f:
+                    title = f.read()
+                item = DataItem(
+                    id.removesuffix(".txt"),
+                    title,
+                    content,
+                    None,
+                    None,
+                    label
+                )
+                if join_context:
+                    ctx_path = base_path.joinpath("context").joinpath(item.id + ".json")
+                    if ctx_path.exists():
+                        with open(ctx_path) as f_ctx:
+                            ctx = ContextItem.from_dict(json.load(f_ctx))
+                        num_articles = int(ctx.article1 is not None) + int(ctx.article2 is not None) + int(ctx.article3 is not None)
+                        if drop_if_less_than_num_contexts is not None and num_articles < drop_if_less_than_num_contexts:
+                            continue
+                        if ctx.article1:
+                            item.ctx1_url = ctx.article1.url
+                            item.ctx1_title = ctx.article1.title
+                            item.ctx1_content = ctx.article1.content
+                        if ctx.article2:
+                            item.ctx2_url = ctx.article2.url
+                            item.ctx2_title = ctx.article2.title
+                            item.ctx2_content = ctx.article2.content
+                        if ctx.article3:
+                            item.ctx3_url = ctx.article3.url
+                            item.ctx3_title = ctx.article3.title
+                            item.ctx3_content = ctx.article3.content
+                    elif drop_if_less_than_num_contexts is not None:
+                        # We have 0 contexts
+                        continue
+                dataset.append(item)
+        return Dataset(dataset)
 
     def load_fakenewsnet(self,
                          path="fakenewsnet/politifact",
@@ -176,7 +233,7 @@ class DatasetLoader:
         if not base_path.exists():
             raise "Dataset path does not exist"
         dataset = []
-        for path, label in [(base_path.joinpath("real"), Label.REAL), (base_path.joinpath("fake"), Label.FAKE)]:
+        for path, label in [(base_path.joinpath("real"), FakeOrRealLabel.REAL), (base_path.joinpath("fake"), FakeOrRealLabel.FAKE)]:
             for id in os.listdir(path):
                 with open(path.joinpath(id)) as f:
                     f_json = json.load(f)
@@ -189,7 +246,7 @@ class DatasetLoader:
                     date = try_parse_datetime(url, dt_exact, dt_date)
                     if not date and drop_unknown_publish:
                         continue
-                    item = FakeNewsNetItem(
+                    item = DataItem(
                         id.removesuffix(".json"),
                         f_json["title"],
                         f_json["text"],
@@ -223,7 +280,7 @@ class DatasetLoader:
                             # We have 0 contexts
                             continue
                     dataset.append(item)
-        return FakeNewsNetDataset(dataset)
+        return Dataset(dataset)
 
 
 def try_parse_datetime(url: str, dt_exact: Optional[str], dt_date: Optional[int]) -> Optional[datetime]:
