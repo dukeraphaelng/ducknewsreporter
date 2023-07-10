@@ -231,7 +231,7 @@ class DatasetLoader:
                          drop_unknown_publish=True):
         base_path = Path(self.base_path).joinpath(path)
         if not base_path.exists():
-            raise "Dataset path does not exist"
+            raise ValueError("Dataset path does not exist")
         dataset = []
         for path, label in [(base_path.joinpath("real"), FakeOrRealLabel.REAL), (base_path.joinpath("fake"), FakeOrRealLabel.FAKE)]:
             for id in os.listdir(path):
