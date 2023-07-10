@@ -3,8 +3,8 @@ from scipy import spatial
 from sklearn.feature_extraction.text import TfidfVectorizer
 import gensim.downloader
 
-from .dataset import DatasetLoader
-from .preprocess import Preprocessor
+from dataset import DatasetLoader
+from preprocess import Preprocessor
 
 class TextualRelevance():
     def __init__(self, embedding_type, dataset = None, word2vec_type = 'word2vec-google-news-300'):

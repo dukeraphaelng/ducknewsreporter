@@ -11,7 +11,7 @@ from typing import Dict, List, Optional, Tuple
 import pandas as pd
 from newspaper import Article, article
 
-from .utils import Label
+from utils import Label
 
 
 @dataclass
