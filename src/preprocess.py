@@ -1,8 +1,9 @@
 import re
 import string
-from typing import List
+from typing import List, Optional
 
 import nltk
+import pandas as pd
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
@@ -85,6 +86,21 @@ class Preprocessor:
     
     def preprocess_and_tokenize(self, input: str) -> List[str]:
         return self.tokenize(self.preprocess(input))
+    
+    def preprocess_and_tokenize_opt(self, input: Optional[str]) -> Optional[List[str]]:
+        """Same as preprocess_and_tokenize but it can accept optional values such as python None or pandas NaType
+
+        Args:
+            input (Optional[str]): The input to preprocess and tokenize
+
+        Returns:
+            Optional[List[str]]: Tokenized string
+        """
+        if input is None:
+            return input
+        if not isinstance(input, str) and pd.isnull(input):
+            return input
+        return self.preprocess_and_tokenize(input)
 
 
 if __name__ == "__main__":
