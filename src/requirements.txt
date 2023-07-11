@@ -27,6 +27,7 @@ sgmllib3k==1.0.0
 six==1.16.0
 smart-open==6.3.0
 soupsieve==2.4.1
+textblob==0.17.1
 tinysegmenter==0.3
 tldextract==3.4.4
 tqdm==4.65.0
