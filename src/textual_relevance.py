@@ -127,8 +127,50 @@ class TextualRelevance():
 
         # https://stackoverflow.com/questions/18424228/cosine-similarity-between-2-number-lists
         return np.mean([1 - spatial.distance.cosine(predict_vec, context_vec) for context_vec in context_vecs])
-    
-    def word_match(self, prediction, contexts):
+
+    # Update description
+    def word_appearance(self, prediction, contexts):
+        '''Calculate word appearance
+        Sum the number of prediction words in the context document
+        Divided by the total number of unique words in the context doc
+
+        # No mention of using word2vec with this
+        "If the top article had less than 60% of query words after preprocessing, the query would be considered fake or doesn’t exist."
+        '''
+        """
+        Parameters
+        ----------
+        prediction : array_like
+            Array of shape (n_words, ). The document to compare against its
+            contexts
+        contexts : array_like
+            Array of shape (n_samples, n_words). Each sample is a tokenised
+            list of words. Each sample is a context document of the prediction
+
+        Returns
+        -------
+        dist : float
+            average value of word appearance of the prediction doc against each
+            context doc. Word appearance is calculated as 
+            average value of summed vectors of common words between the
+            prediction and each context document (between 0 and inf). 0 means 
+            there is no relationship, higher values means more similar words.
+        """
+        unique_predict_words = set(prediction)
+        out = []
+        for context in contexts:
+            unique_context_words = set(context)
+            common_words = unique_predict_words.intersection(unique_context_words)
+            out.append(len(common_words) / len(unique_context_words))
+
+        return np.mean(out)
+
+    def matching_score(self, prediction, contexts):
+        '''Calculate the vector value for the common words in the prediction doc and context doc
+        Divided by the summed vector value of the context document
+
+        # No mention of using word2vec with this
+        '''
         """
         Parameters
         ----------
@@ -146,5 +188,11 @@ class TextualRelevance():
             prediction and each context document (between 0 and inf). 0 means 
             there is no relationship, higher values means more similar words.
         """
-        common_words_list = [set(prediction).intersection(set(context)) for context in contexts]
-        return np.average(np.sum(self.vectorizer(common_words_list), axis=1))
+        unique_predict_words = set(prediction)
+        out = []
+        for context in contexts:
+            unique_context_words = set(context)
+            common_words = unique_predict_words.intersection(unique_context_words)
+            out.append(np.sum(self.vectorizer(common_words)) / np.sum(self.vectorizer(unique_context_words)))
+
+        return np.mean(out)
