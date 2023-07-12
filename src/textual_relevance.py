@@ -4,7 +4,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import gensim.downloader
 
 class TextualRelevance():
-    def __init__(self, embedding_type, dataset = None, word2vec_type = 'word2vec-google-news-300'):
+    def __init__(self, embedding_type, dataset = None, ngram_range = (1,1), word2vec_type = 'word2vec-google-news-300'):
         """Perform textual relevance calculation
 
         TextualRelevance calculates the average distance between a
@@ -20,6 +20,8 @@ class TextualRelevance():
         dataset : array_like (optional, default=None)
             Array of shape (n_samples, n_words). Each sample is a tokenised
             list of words. if embedding_type is 'word2vec', dataset is ignored.
+        ngram_range: tuple_like (optional, default=(1,1))
+            ngram range of the TF-IDF
         word2vec_type: string (optional, default='word2vec-google-news-300')
             Must be a valid gensim word2vec model. Only required when
             using 'word2vec' as embedding_type
@@ -63,17 +65,17 @@ class TextualRelevance():
         self.embedding_type = embedding_type
 
         if self.embedding_type == 'tfidf':
-            self.vectorizer = self.__get_embedding_tfidf(dataset)
+            self.vectorizer = self.__get_embedding_tfidf(dataset, ngram_range)
         else:
             # Model must be in list(gensim.downloader.info()['models'].keys())
             self.__word2vec = gensim.downloader.load(word2vec_type)
             self.__word2vec_dim = gensim.downloader.info()['models'][word2vec_type]['parameters']['dimension']
             self.vectorizer = self.__get_embedding_word2vec()
     
-    def __get_embedding_tfidf(self, dataset):
+    def __get_embedding_tfidf(self, dataset, ngram_range):
         '''Train a sklearn TfidfVectorizer on a tokenised dataset'''        
         # Experiment with different TfidVectorizer parameters here or use literature review results
-        vectorizer = TfidfVectorizer(tokenizer=lambda x: x, lowercase=False)
+        vectorizer = TfidfVectorizer(tokenizer=lambda x: x, lowercase=False, ngram_range=ngram_range)
         vectorizer.fit(dataset)
 
         # https://stackoverflow.com/questions/24440332/numpy-scipy-sparse-matrix-to-vector
