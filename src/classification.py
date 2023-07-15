@@ -94,7 +94,7 @@ class Pipeline:
                 cosine_dist = tfidf_1_2.cosine_dist(row["content"], contents)
                 word_app = tfidf_1_2.word_appearance(row["content"], contents)
                 matching = tfidf_1_2.matching_score(row["content"], contents)
-                harmonic_mean = (3 * cosine_dist * word_app * matching) / (cosine_dist + word_app + matching)
+                harmonic_mean = 3 / ((1 / cosine_dist) + (1 / word_app) + (1 / matching))
                 return harmonic_mean
             df["tf_idf_1_2_harmonic_mean"] = df.apply(extract_similarity, axis=1)
             logging.info("Similarity comparison...done")
