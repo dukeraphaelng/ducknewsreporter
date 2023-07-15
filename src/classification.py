@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Dict
 
 import numpy as np
@@ -25,7 +26,7 @@ class Pipeline:
         self.similarity = similarity
         self.sentiment = sentiment
 
-    def load_dataset(self):
+    def load_dataset(self, quiet=False):
         """Performs the following work in order:
          - Load the dataset and join context
          - Extracts sentiment features
@@ -38,11 +39,15 @@ class Pipeline:
         Returns:
             (X: np.ndarray, y: np.ndarray): A numpy X and y with all the features concatenated
         """
+        logging.basicConfig(format='\x1b[1;36m%(asctime)s: %(message)s\u001b[0m', level=logging.INFO, datefmt='%Y-%m-%dT%H:%M:%SZ')
+        logging.getLogger().disabled = quiet
+
         # Load dataset
         df = DatasetLoader().load_horne2017_fakenewsdata(drop_if_less_than_num_contexts=1).as_pandas()
 
         # Sentiment features (handles unprocessed text)
         if self.sentiment:
+            logging.info("Sentiment extraction...")
             sentiment = TextBlobSentimentExtractor()
             def extract_sentiment(row):
                 s_content = sentiment.extract_sentiment(row["content"])
@@ -57,21 +62,29 @@ class Pipeline:
                 polarity = sum(delta_polarity) / len(delta_polarity)
                 return pd.Series((subjectivity, polarity), ("subjectivity", "polarity"))
             df = pd.concat([df, df.apply(extract_sentiment, axis=1)], axis=1)
+            logging.info("Sentiment extraction...done")
+        else:
+            logging.info("Sentiment extraction...skipped")
 
         # Preprocess data
+        logging.info("Preprocessing and tokenization...")
         preprocessor = Preprocessor()
         for content in ("content", "ctx1_content", "ctx2_content", "ctx3_content"):
             df[content] = df[content].apply(preprocessor.preprocess_and_tokenize_opt)
+        logging.info("Preprocessing and tokenization...done")
         
         # BERT Features
+        logging.info("BERT feature extraction...")
         tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
         model = TFBertModel.from_pretrained("bert-base-uncased")
 
         df["content_bert_tokens"] = df["content"].apply(lambda art: tokenizer(" ".join(art)[:512], return_tensors="tf"))
         df["content_bert"] = df["content_bert_tokens"].apply(lambda x: model(x).pooler_output.numpy()[0])
+        logging.info("BERT feature extraction...done")
 
         # Similarity features
         if self.similarity:
+            logging.info("Similarity comparison...")
             tfidf_1_2 = TextualRelevance("tfidf", df["content"], ngram_range=(1, 2))
             def extract_similarity(row):
                 contents = []
@@ -84,6 +97,9 @@ class Pipeline:
                 harmonic_mean = (3 * cosine_dist * word_app * matching) / (cosine_dist + word_app + matching)
                 return harmonic_mean
             df["tf_idf_1_2_harmonic_mean"] = df.apply(extract_similarity, axis=1)
+            logging.info("Similarity comparison...done")
+        else:
+            logging.info("Similarity comparison...skipped")
 
         # Convert to numpy
         X = np.vstack(df["content_bert"])
