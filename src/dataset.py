@@ -5,7 +5,7 @@ import os
 import re
 from dataclasses import dataclass
 from datetime import datetime
-from enum import Enum
+from enum import IntEnum
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -14,7 +14,7 @@ from newspaper import Article, article
 from tqdm import tqdm
 
 
-class FakeOrRealLabel(Enum):
+class FakeOrRealLabel(IntEnum):
     FAKE = 0
     REAL = 1
 
