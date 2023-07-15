@@ -4,7 +4,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import gensim.downloader
 
 class TextualRelevance():
-    def __init__(self, embedding_type, dataset = None, word2vec_type = 'word2vec-google-news-300'):
+    def __init__(self, embedding_type, dataset = None, ngram_range = (1,1), word2vec_type = 'word2vec-google-news-300'):
         """Perform textual relevance calculation
 
         TextualRelevance calculates the average distance between a
@@ -20,6 +20,8 @@ class TextualRelevance():
         dataset : array_like (optional, default=None)
             Array of shape (n_samples, n_words). Each sample is a tokenised
             list of words. if embedding_type is 'word2vec', dataset is ignored.
+        ngram_range: tuple_like (optional, default=(1,1))
+            ngram range of the TF-IDF
         word2vec_type: string (optional, default='word2vec-google-news-300')
             Must be a valid gensim word2vec model. Only required when
             using 'word2vec' as embedding_type
@@ -63,17 +65,17 @@ class TextualRelevance():
         self.embedding_type = embedding_type
 
         if self.embedding_type == 'tfidf':
-            self.vectorizer = self.__get_embedding_tfidf(dataset)
+            self.vectorizer = self.__get_embedding_tfidf(dataset, ngram_range)
         else:
             # Model must be in list(gensim.downloader.info()['models'].keys())
             self.__word2vec = gensim.downloader.load(word2vec_type)
             self.__word2vec_dim = gensim.downloader.info()['models'][word2vec_type]['parameters']['dimension']
             self.vectorizer = self.__get_embedding_word2vec()
     
-    def __get_embedding_tfidf(self, dataset):
+    def __get_embedding_tfidf(self, dataset, ngram_range):
         '''Train a sklearn TfidfVectorizer on a tokenised dataset'''        
         # Experiment with different TfidVectorizer parameters here or use literature review results
-        vectorizer = TfidfVectorizer(tokenizer=lambda x: x, lowercase=False)
+        vectorizer = TfidfVectorizer(tokenizer=lambda x: x, lowercase=False, ngram_range=ngram_range)
         vectorizer.fit(dataset)
 
         # https://stackoverflow.com/questions/24440332/numpy-scipy-sparse-matrix-to-vector
@@ -127,9 +129,12 @@ class TextualRelevance():
 
         # https://stackoverflow.com/questions/18424228/cosine-similarity-between-2-number-lists
         return np.mean([1 - spatial.distance.cosine(predict_vec, context_vec) for context_vec in context_vecs])
-    
-    def word_match(self, prediction, contexts):
-        """
+
+    def word_appearance(self, prediction, contexts):
+        '''Calculate word appearance
+        Sum the number of unique prediction words in the context document
+        Divided by the total number of unique words in the context doc
+
         Parameters
         ----------
         prediction : array_like
@@ -142,9 +147,45 @@ class TextualRelevance():
         Returns
         -------
         dist : float
-            average value of summed vectors of common words between the
-            prediction and each context document (between 0 and inf). 0 means 
-            there is no relationship, higher values means more similar words.
-        """
-        common_words_list = [set(prediction).intersection(set(context)) for context in contexts]
-        return np.average(np.sum(self.vectorizer(common_words_list), axis=1))
+            average value of word appearance of the prediction doc against each
+            context doc. 0 means there is no relationship between two vectors, 1
+            means two vectors are the same
+        '''
+        unique_predict_words = set(prediction)
+        out = []
+        for context in contexts:
+            unique_context_words = set(context)
+            common_words = unique_predict_words.intersection(unique_context_words)
+            out.append(len(common_words) / len(unique_context_words))
+
+        return np.mean(out)
+
+    def matching_score(self, prediction, contexts):
+        '''Calculate the vector value for the unique common words in the prediction
+        doc and context doc divided by the summed vector value of the unique words in
+        context document
+
+        Parameters
+        ----------
+        prediction : array_like
+            Array of shape (n_words, ). The document to compare against its
+            contexts
+        contexts : array_like
+            Array of shape (n_samples, n_words). Each sample is a tokenised
+            list of words. Each sample is a context document of the prediction
+
+        Returns
+        -------
+        dist : float
+            average value of matching score of the prediction doc against each
+            context doc. 0 means there is no relationship between two vectors, 1
+            means two vectors are the same
+        '''
+        unique_predict_words = set(prediction)
+        out = []
+        for context in contexts:
+            unique_context_words = set(context)
+            common_words = unique_predict_words.intersection(unique_context_words)
+            out.append(np.sum(self.vectorizer(common_words)) / np.sum(self.vectorizer(unique_context_words)))
+
+        return np.mean(out)
