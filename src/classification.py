@@ -1,5 +1,6 @@
 import logging
-from typing import Any, Dict
+from pathlib import Path
+from typing import Any, Dict, Optional
 
 import numpy as np
 import pandas as pd
@@ -25,8 +26,14 @@ class Pipeline:
     def __init__(self, similarity=True, sentiment=False):
         self.similarity = similarity
         self.sentiment = sentiment
+    
+    def load_dataset_from_file(self, directory: str):
+        base = Path(directory)
+        X = np.fromfile(base.joinpath("X.numpy"))
+        y = np.fromfile(base.joinpath("y.numpy"))
+        return (X, y)
 
-    def load_dataset(self, quiet=False):
+    def load_dataset(self, quiet=False, save: Optional[str]=None):
         """Performs the following work in order:
          - Load the dataset and join context
          - Extracts sentiment features
@@ -113,6 +120,11 @@ class Pipeline:
         # Scale features
         scaler = MinMaxScaler(feature_range=(0, 0.99))
         X = scaler.fit_transform(X)
+
+        if save:
+            base = Path(save)
+            X.tofile(base.joinpath("X.numpy"))
+            y.tofile(base.joinpath("y.numpy"))
 
         return (X, y)
 
