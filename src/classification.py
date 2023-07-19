@@ -27,10 +27,15 @@ class Pipeline:
         self.similarity = similarity
         self.sentiment = sentiment
     
-    def load_dataset_from_file(self, directory: str):
-        base = Path(directory)
-        X = np.fromfile(base.joinpath("X.numpy"))
-        y = np.fromfile(base.joinpath("y.numpy"))
+    def load_dataset_from_file(self, path: str):
+        df = pd.read_csv(path)
+        y = df["label"].to_numpy()
+        labels_to_drop = ["label"]
+        if not self.similarity:
+            labels_to_drop.append("tf_idf_1_2_harmonic_mean")
+        if not self.sentiment:
+            labels_to_drop.extend(("subjectivity", "polarity"))
+        X = df.drop(labels_to_drop, axis=1).to_numpy()
         return (X, y)
 
     def load_dataset(self, quiet=False, save: Optional[str]=None):
@@ -123,8 +128,13 @@ class Pipeline:
 
         if save:
             base = Path(save)
-            X.tofile(base.joinpath("X.numpy"))
-            y.tofile(base.joinpath("y.numpy"))
+            labels = ["label", *[f"bert_{n}" for n in range(len(df["content_bert"][0]))]]
+            if self.similarity:
+                labels.append("tf_idf_1_2_harmonic_mean")
+            if self.sentiment:
+                labels.extend(("subjectivity", "polarity"))
+            df_out = pd.DataFrame(np.hstack((y.reshape((-1, 1)), X)), columns=labels)
+            df_out.to_csv(base.joinpath("features.csv"), index=False)
 
         return (X, y)
 
