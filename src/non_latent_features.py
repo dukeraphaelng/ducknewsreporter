@@ -1,27 +1,23 @@
-from collections import Counter
-import string
+## spaCy Installation
+# pip install -U pip setuptools wheel
+# pip install -U spacy
+# python -m spacy download en_core_web_sm
+
+## Other dependencies
+# pip3 install spacytextblob contractions syllables py-readability-metrics
+# python -m textblob.download_corpora
+# python -m spacy download en_core_web_sm
 
 import numpy as np
 
-import nltk
-from nltk.tokenize import RegexpTokenizer
-from nltk.corpus import stopwords
-nltk.download('stopwords')
-
+import spacy
+from spacytextblob.spacytextblob import SpacyTextBlob
 from readability import Readability
+from readability.exceptions import ReadabilityException
 import syllables
 import contractions
 
-def num_punc(words):
-    count_ = 0
-    for word in words:
-        if word in string.punctuation:
-            count_ += 1
-    return count_
-
-# REVIEW ALL NLTK POS USING nltk.help.upenn_tagset()
-
-class SemanticNonLatentFeatures():
+class NonLatentFeatures():
     '''
     Reference:
         Zhou, X. and Zafarani, R., 2020. A survey of fake news: 
@@ -39,160 +35,164 @@ class SemanticNonLatentFeatures():
         Industrial Engineering, 172, p.108432.
     '''
     def __init__(self, raw):
-        # Do contractions
+        # Expand contractions
         self.raw = ' '.join(contractions.fix(word) for word in raw.split())
 
-        # From stackoverflow
-        # Without punctuation
-        self.clean_tokenizer = RegexpTokenizer(r'\w+')
+        nlp = spacy.load("en_core_web_sm")
+        nlp.add_pipe('spacytextblob')
 
-        # Can't get clean tokens
-        self.tags = nltk.pos_tag(self.text)
+        self.doc = nlp(self.raw)
+    
+        self.run_loop = False
+        self.counter = {}
+        self.unique = {}
+        self.avg_chars_per_word = []
+        self.arr = {}
         
-        self.run_loop_words = False
+        # For readability indices
+        self.readability = Readability(self.raw)        
+
+    def _get_tag_count(self, arr):
+        return [self.counter.get(tag, 0) for tag in arr]
+
+    def _get_num_clauses(self):
+        '''
+        https://subscription.packtpub.com/book/data/9781838987312/2/ch02lvl1sec13/splitting-sentences-into-clauses
+        '''
+        def find_root_of_sentence(doc):
+            root_token = None
+            for token in doc:
+                if (token.dep_ == "ROOT"):
+                    root_token = token
+            return root_token
         
-        self.readability = Readability(self.raw)
-        
-        # ADJ, ADP, ADV, CONJ, DET, NOUN, NUM, PRT, VERB, ., X
-        self.pos_count = Counter(tag for word, tag in self.tags)
-        total = sum(self.pos_count.values())        
-        self.pos_percent = dict((tag, float(count_)/total) for tag, count_ in self.pos_count.items())
-    
-    # Lazy getter
-    def get_sents(self):
-        if not self.words:
-            self.sents = nltk.sen_tokenize(self.raw)
-        return self.sents
-    
-    def get_origin_words(self):
-        if not self.origin_words:
-            self.origin_tokens = nltk.word_tokenize(self.raw)
-            self.origin_words = nltk.Text(self.origin_tokens)
-        return self.origin_words
-    
-    def get_clean_words(self):
-        # No punctuation
-        if not self.clean_words:
-            self.clean_tokens = self.clean_tokenizer.tokenize(self.raw)
-            self.clean_words = nltk.Text(self.clean_tokens)
-        return self.clean_words
+        def find_other_verbs_count(doc, root_token):
+            other_verbs_count = 0
+            for token in doc:
+                ancestors = list(token.ancestors)
+                if (token.pos_ == "VERB" and len(ancestors) == 1\
+                    and ancestors[0] == root_token):
+                    other_verbs_count += 1
+            return other_verbs_count
 
-    def puncs_per_sent(self):
-        if not self.getter_puns_per_sent:
-            self.getter_puns_per_sent = [num_punc(sent) for sent in self.get_sents()]
-        return self.getter_puns_per_sent
-    
-    def loop_words(self):
-        if not self.run_loop_words:
-            self.upper = 0
-            self.lower = 0
-            self.all_caps = 0
-            self.quotations = 0
-            self.punctuation = 0
-            self.question_marks = 0
-            self.exclamation_marks = 0
-            self.stop_count = 0
-            
-            self.first_person_singular = 0
-            self.first_person_plural = 0
-            self.second_third_person = 0
-            
-            # negations
-            # NO = self.post_tag('DT)
-            # NEVER, NOT = self.post_tag('RB')
-            
-            stops = set(stopwords.words('english'))
+        num_clauses = 0
+        for sent in self.doc.sents:
+            root_token = find_root_of_sentence(sent)
+            other_verbs_count = find_other_verbs_count(self.doc, root_token)
+            # +1 for root token
+            num_clauses += (1 + other_verbs_count)
+        return num_clauses
 
-            for token in self.origin_words:
-                if token in string.punctuation:
-                    self.punctuation += 1
-                    if token in ('"', "'"):
-                        self.quotations += 1
-                    elif token == '?':
-                        self.question_marks += 1
-                    elif token == '!':
-                        self.exclamation_marks +=1
-                else:
-                    if token[0].isupper():
-                        self.upper += 1
-                        if token.isupper():
-                            self.all_caps += 1
-                    elif token.islower():
-                        self.lower += 1
-
-                    if token in stops:
-                        self.stop_count += 1
+    def _loop_runner(self):
+        if not self.run_loop:
+            for token in self.doc:
+                self.unique[token.pos_] = self.unique.get(token.pos_, set())
+                self.unique[token.pos_].add(token.lemma_)
+                
+                self.counter[token.pos_] = self.counter.get(token.pos_, 0) + 1
+                self.counter[token.tag_] = self.counter.get(token.tag_, 0) + 1
+                
+                if token.is_alpha:
+                    self.arr['chars_per_word'] = self.arr.get('chars_per_word', [])
+                    self.arr['chars_per_word'].append(len(token))
                     
-                    lower_token = token.lower()
-                    if token in ('i', 'me', 'my', 'mine', 'myself'):
-                        self.first_person_singular += 1
-                    elif token in ('we', 'us', 'our', 'ourselves'):
-                        self.first_person_plural += 1
-                    elif token in ('you', 'your', 'he', 'she', 'it', 'him', 'his', 'her', 'they', 'their', 'them'):
-                        self.second_third_person += 1
+                    if token.pos_ == 'PRON':
+                        lower_token = token.text.lower()
+                        if lower_token in ('i', 'me', 'my', 'mine', 'myself'):
+                            self.counter['FPS'] = self.counter.get('FPS', 0) + 1
+                        elif lower_token in ('we', 'us', 'our', 'ourselves'):
+                            self.counter['FPP'] = self.counter.get('FPP', 0) + 1
+                        elif lower_token in ('you', 'your', 'he', 'she', 'it', 'him', 'his', 'her', 'they', 'their', 'them'):
+                            self.counter['STP'] = self.counter.get('STP', 0) + 1
+                    elif token.text.lower() in ('no', 'never', 'not'):
+                        self.counter['NEG'] = self.counter.get('NEG', 0) + 1
+                    if token.is_stop:
+                        self.counter['STOP'] = self.counter.get('STOP', 0) + 1
 
-            self.run_loop_words = True
+                    if token.text[0].isupper():
+                        self.counter['UP'] = self.counter.get('UP', 0) + 1
+                        if token.text.isupper():
+                            self.counter['CAPS'] = self.counter.get('CAPS', 0) + 1
+                    elif token.text.islower():
+                        self.counter['LOW'] = self.counter.get('LOW', 0) + 1
+                else:
+                    if token.text in ('!', '?'):
+                        self.counter[token.text] = self.counter.get(token.text, 0) + 1
+
+        self.run_loop = True
     
-    def get_tag_count(self, arr):
-        return [self.pos_count(tag) for tag in arr]
-    
-    def diversity(self, type_):
+    def diversity(self, type_, reduce_):
         '''
         Diversity
         
         Args:
             type_: lexical, content, function, noun, verb, adj, adv
         '''
-        # POS COUNTS:
-        # https://pythonprogramming.net/part-of-speech-tagging-nltk-tutorial/
-        if type_ == 'lexical':
-            # Not including punctuation
-            unique_words = len(set(self.get_clean_words()))
-            all_words = len(self.get_clean_words())
-            return unique_words / all_words
-        elif type_ == 'content':
-            # Cannot calculate it like this, must get unique words
+        
+        self._loop_runner()
+        
+        # ARGS = ['NOUN', 'VERB', 'ADJ', 'ADV', 'LEX', 'CONT', 'FUNC']
+        
+        if reduce_ not in ('sum', 'percent'):
+            raise ValueError(f'Invalid reduction method: {reduce_}')
+                    
+        arr = []
+        if type_ in ('NOUN', 'VERB', 'ADJ', 'ADV'):
+            arr = self.unique.get(type_, [])
+            
+            if reduce_ == 'sum':
+                return len(arr)
+            else:
+                if self.counter.get(type_, 0) == 0:
+                    return 0
+                else:
+                    return len(arr) / self.counter.get(type_, 0)
+                
+        elif type_ in ('LEX', 'CONT', 'FUNC'):
+            filtered_keys = []
+            # https://pronuncian.com/content-and-function-words#:~:text=Content%20words%20are%20usually%20nouns,focus%20his%20or%20her%20attention.
+            if type_ == 'LEX':
+                filtered_keys = ['ADJ', 'ADP', 'ADV', 'AUX', 'CONJ', 'CCONJ', 'DET', 'INTJ', 'NOUN', 'NUM', 'PART', 'PRON', 'PROPN', 'PUNCT', 'SCONJ', 'VERB']
+                # Can do np.sum or np.avg on this value or divide them by the len(self.doc)
+            elif type_ == 'CONT':
+                filtered_keys = ['ADJ', 'ADV', 'ADJ', 'NOUN', 'PROPN', 'VERB']
+            elif type_ == 'FUNC':
+                filtered_keys = ['AUX', 'ADP', 'CONJ', 'CCONJ', 'DET', 'PRON', 'SCONJ']
 
-            # https://pronuncian.com/content-and-function-words#:~:text=Content%20words%20are%20usually%20nouns,focus%20his%20or%20her%20attention.
-            return np.sum(self.get_tag_count(['NN', 'NNS', 'NNP', 'NNPS', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ', 'JJ', 'JJR', 'JJS', 'RB', 'RBR', 'RBS'])) / len(self.get_clean_words())
-        elif type_ == 'function':
-            # https://pronuncian.com/content-and-function-words#:~:text=Content%20words%20are%20usually%20nouns,focus%20his%20or%20her%20attention.
-            # auxiliary verbs, preps, conjuncs, det, pronoun
-            return np.sum(self.get_tag_count(['CC', 'DT', 'IN', 'MD', 'PRP', 'PRP$', 'WP', 'WP$', 'WDT'])) / len(self.get_clean_words())
-        elif type_ == 'noun':
-            # Cannot calculate it like this, must get unique words
-            return np.sum(self.get_tag_count(['NN', 'NNS', 'NNP', 'NNPS'])) / len(self.get_clean_words())
-        elif type_ == 'verb':
-            # Cannot calculate it like this, must get unique words
-            return np.sum(self.get_tag_count(['VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ'])) / len(self.get_clean_words())
-        elif type_ == 'adj':
-            # Cannot calculate it like this, must get unique words
-            return np.sum(self.get_tag_count(['JJ', 'JJR', 'JJS'])) / len(self.get_clean_words())
-        elif type_ == 'adv':
-            # Cannot calculate it like this, must get unique words
-            return np.sum(self.get_tag_count(['RB', 'RBR', 'RBS'])) / len(self.get_clean_words())
-        else:        
+            arr = [len(self.unique.get(k, [])) for k in filtered_keys]
+            
+            if reduce_ == 'sum':
+                return np.sum(arr)
+            else:
+                # total = np.sum(self._get_tag_count(filtered_keys))
+                # if total == 0:
+                #     return 0
+                # return len(arr) / total
+                return np.sum(arr) / len(self.doc)
+
+        else:
             raise ValueError(f'Invalid type: {type_}')
-    
-    def pronoun(self, type_):
+            
+    def pronoun(self, type_, reduce_):
         '''
         Non-immediacy
         
         Args:
-            type_: first_person_singular, first_person_plural, second_third_person
+            type_: FPS, FPP, STP
+            first-person-singular, first-person,plural, second-third-person
         '''
-        if type_ == 'first_person_singular':
-            # I, me, my, mine, myself
-            self.loop_words()
-            return self.first_person_singular
-        elif type_ == 'first_person_plural':
-            # we us our, ourselves
-            self.loop_words()
-            return self.first_person_plural
-        elif type_ == 'second_third_person':
-            # you your he she it his him her they their them
-            self.loop_words()
-            return self.second_third_person
+        self._loop_runner()
+
+        if reduce_ not in ('sum', 'percent'):
+            raise ValueError(f'Invalid reduction method: {reduce_}')
+
+        if type_ in ('FPS', 'FPP', 'STP'):
+            if reduce_ == 'sum':
+                return self.counter.get(type_, 0)
+            else:
+                return self.counter.get(type_, 0) / len(self.doc)
+        else:
+            raise ValueError(f'Invalid type: {type_}')
     
     def quantity(self, type_, reduce_='percent'):
         '''
@@ -206,64 +206,46 @@ class SemanticNonLatentFeatures():
             posessive_pronouns, past_tense, proper_nouns, verb_phrases, stop_words
 
             reduce_: count, percent
-        '''                    
-        if type_== 'nouns':
-            return np.sum(self.get_tag_count(['NN', 'NNS', 'NNP', 'NNPS']))
-        elif type_== 'proper_nouns':
-            return np.sum(self.get_tag_count(['NNP', 'NNPS']))
-        elif type_ == 'verb':
-            return np.sum(self.get_tag_count(['VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ']))
-        elif type_ == 'adj':
-            return np.sum(self.get_tag_count(['JJ', 'JJR', 'JJS']))
-        elif type_ == 'adv':
-            return np.sum(self.get_tag_count(['RB', 'RBR', 'RBS']))       
-        elif type_== 'articles':
-            return self.pos_count('DT')
-        elif type_== 'det':
-            return self.pos_count('PDT')
-        elif type_== 'personal_pronouns':
-            return self.pos_count('PRP')
-        elif type_== 'possessive_pronouns':
-            return self.pos_count('PRP$')
-        elif type_== 'wh_determinants':
-            return self.pos_count('WDT')
-        elif type_== 'past_tense':
-            return self.pos_count('VBD')
-        elif type_== 'cardinals':
-            return self.pos_count('CD')
-        elif type_== 'chars':
-            return len(self.raw)
-        elif type_== 'words':
-            return len(self.get_clean_words())
-        elif type_== 'sents':
-            return len(self.get_sents())
-        elif type_== 'punctuations':
-            self.loop_words()
-            return self.punctuation
-        elif type_ == 'quotations':
-            self.loop_words()
-            return self.quotations
-        elif type_== 'lower':
-            self.loop_words()
-            return self.lower
-        elif type_== 'upper':
-            self.loop_words()
-            return self.upper
-        elif type_== 'negations':
-            pass
-        elif type_== 'noun_phrases':
-            pass
-        elif type_== 'verb_phrases':
-            pass
-        elif type_== 'syllables':
-            return syllables.estimate(self.raw)
-        elif type_== 'stop_words':
-            self.loop_words()
-            return self.stop_count
+        '''
+        self._loop_runner()
+        
+        if reduce_ not in ('sum', 'percent'):
+            raise ValueError(f'Invalid reduction method: {reduce_}')
+        
+        # POS-related
+        if type_ in ['NOUN', 'VERB', 'ADJ', 'ADV', 'PRON', 'DET', 'NUM', 'PUNCT', 'SYM'] + ['PRP', 'PRP$', 'WDT', 'CD', 'VBD'] + ['STOP', 'LOW', 'UP', 'NEG']:
+            # POS (UPOS) or TAG (English POS) or others
+            sum_ = self.counter.get(type_, 0)
         else:
-            raise ValueError(f'Invalid type: {type_}')
+            if reduce_ == 'percent':
+                raise ValueError(f'Invalid reduction method: {reduce_}')
+            
+            if type_ == 'QUOTE':
+                sum_ = np.sum(self._get_tag_count(["``", '""', "''"]))
 
-        # Others: WDT: wh-determiner, WP: wh-pronoun, WP%: possessive wh-pronoun, WRB: wh-adverb
+            elif type_ == 'NP':
+                sum_ = len(list(self.doc.noun_chunks))
+
+            # Simple Count
+            elif type_== 'CHAR':
+                sum_ = len(self.raw)
+            elif type_== 'WORD':
+                sum_ = len(self.doc)
+            elif type_== 'SENT':
+                sum_ = len(list(self.doc.sents))
+
+            # Using Library
+            elif type_== 'SYLL':
+                sum_ = syllables.estimate(self.raw)
+
+            else:
+                raise ValueError(f'Invalid type: {type_}')
+        
+        # CAN ONLY BE ['NOUN', 'VERB', 'ADJ', 'ADV', 'PRON', 'DET', 'NUM', 'PUNCT', 'SYM'] + ['PRP', 'PRP$', 'WDT', 'CD', 'VBD'] + ['STOP', 'LOW', 'UP', 'NEG']
+        if reduce_ == 'sum':
+            return sum_
+        else:
+            return sum_ / len(self.doc)
 
     def sentiment(self, type_, reduce_='percent'):
         '''
@@ -274,91 +256,54 @@ class SemanticNonLatentFeatures():
             polarity, subjectivity, avg_neg_senti, avg_pos_senti, all_caps
             reduce_: count, percent 
         '''
+        self._loop_runner()
         
-        if type_ == 'exclamation_mark':
-            self.loop_words()
-            return self.exclamation_marks
-        elif type_ == 'question_mark':
-            self.loop_words()
-            return self.question_marks
-        elif type_ == 'all_caps':
-            self.loop_words()
-            return self.all_caps
-        elif type_ == 'polarity':
-            pass
-        elif type_ == 'subjectivity':
-            pass
+        if reduce_ not in ('sum', 'percent'):
+            raise ValueError(f'Invalid reduction method: {reduce_}')
+        
+        if type_ in ['!','?', 'CAPS']:
+            if reduce_ == 'sum':
+                return self.counter.get(type_, 0)
+            else:
+                return self.counter.get(type_, 0) / len(self.doc)
         else:
-            raise ValueError(f'Invalid type: {type_}')
-
-    # COMPLETE
-    def readability(self, type_):
-        '''
-        Readability
-        
-        Args:
-            type_: gunning-fog, automatic, coleman-liau, dale-chall,
-            flesch, linsear-write, spache, flesch-kincaid
+            if reduce_ == 'percent':
+                raise ValueError(f'Invalid reduction method: {reduce_}')
             
-        Reference:
-            https://pypi.org/project/py-readability-metrics/
-        '''
-        if type_ == 'gunning-fog':
-            res = self.readability.gunning_fog()
-            return res.score, res.grade_level
-        elif type_ == 'automatic':
-            res = self.readability.ari()
-            return res.score, res.grade_levels, res.ages
-        elif type_ == 'coleman-liau':
-            res = self.readability.coleman_liau()
-            return res.score, res.grade_level
-        elif type_ == 'dale-chall':
-            res = self.readability.dale_chall()
-            return res.score, res.grade_levels
-        elif type_ == 'flesch':
-            res = self.readability.flesch()
-            return res.score, res.ease, res.grade_levels
-        elif type_ == 'flesch-kincaid':
-            res = self.readability.flesch_kincaid()
-            return res.score, res.grade_level
-        elif type_ == 'linsear-write':
-            res = self.readability.linsear_write()
-            return res.score, res.grade_level
-        elif type_ == 'spache':
-            res = self.readability.spache()
-            return res.score, res.grade_level
-        else:
-            raise ValueError(f'Invalid type: {type_}')
+            if type_ == 'POL':
+                # Polarity
+                return self.doc._.blob.polarity
+            elif type_ == 'SUBJ':
+                # Subjectivity
+                return self.doc._.blob.subjectivity
+            else:
+                raise ValueError(f'Invalid type: {type_}')
 
-    # TODO: claus_per_sent
     def average(self, type_):
         '''
         Complexity
         
         Args:
-            type_: chars_per_word, words_per_sent, claus_per_sent, puncs_per_sent
+            type_: chars_per_word, words_per_sent, claus_per_sent, puncts_per_sent
         '''
-        
+        self._loop_runner()        
         if type_ == 'chars_per_word':
-            return np.mean([len(word) for word in self.get_clean_words()])
+            return np.mean(self.arr['chars_per_word'])
         elif type_ == 'words_per_sent':
-            return np.mean([len(sent) for sent in self.get_sents()])
-        elif type_ == 'claus_per_sen':
-            pass
-            # UNIMPLEMENTED
-            # https://stackoverflow.com/questions/31790259/counting-sentence-clauses-with-nltk
-            # # self.sents = None
-            
-            # def num_claus(sent):
-            #     pass
-
-            # np.mean([num_claus(sent) for sent in sents])
-        elif type_ == 'puncs_per_sen':
-            return np.mean(self.puncs_per_sent())
+            return np.mean([len(sent) for sent in self.doc.sents])
+        elif type_ == 'puncts_per_sent':
+            self.arr['puncts_per_sent'] = [0] * len(list(self.doc.sents))
+            for i, sent in enumerate(self.doc.sents):
+                self.arr['puncts_per_sent'].append(0)
+                for j in range(sent.start, sent.end):
+                    if self.doc[j].pos_ == 'PUNCT':
+                        self.arr['puncts_per_sent'][i] += 1
+            return np.mean(self.arr['puncts_per_sent'])
+        elif type_ == 'claus_per_sent':
+            return np.mean(self._get_num_clauses())
         else:
             raise ValueError(f'Invalid type: {type_}')
 
-    # median depth & number of
     def syntax_tree(self, type_):
         '''
         Syntax Tree
@@ -366,11 +311,168 @@ class SemanticNonLatentFeatures():
         Args:
             type_: all, noun_phrase, verb_phrase
         '''
-        if type_ == 'all':
-            pass
-        elif type_ == 'noun_phrase':
-            pass
-        elif type_ == 'verb_phrase':
-            pass
+        # https://stackoverflow.com/questions/64591644/how-to-get-height-of-dependency-tree-with-spacy
+        def walk_tree(node, depth):
+            if node.n_lefts + node.n_rights > 0:
+                return max(walk_tree(child, depth + 1) for child in node.children)
+            else:
+                return depth
+
+        if type_ == 'ALL':
+            depths_arr = []
+            for sent in self.doc.sents:
+                depths_arr.append(walk_tree(sent.root, 0))
+            
+            return np.median(depths_arr)
+        elif type_== 'NP':
+            depths_arr = []
+            for sent in self.doc.sents:
+                for noun_phrase in sent.noun_chunks:
+                    depths_arr.append(walk_tree(noun_phrase.root, 0))
+            return np.median(depths_arr)
+        # elif type_== 'VP':
+        #     vps = []
+        #     for sent in self.doc.sents:
+        #         # https://devpress.csdn.net/python/63045ba97e6682346619a782.html
+        #         pattern = r'<VERB>?<ADV>*<VERB>+'
+        #         doc = textacy.Doc(sent, lang='en_core_web_sm')
+        #         lists = textacy.extract.token_matches(doc, pattern)
+        #         vps.concat(lists)
+
+        #     if reduce_ == 'median_depth':
+        #         depths_arr = []
+        #         for sent in self.doc.sents:
+        #             for noun_phrase in sent.noun_chunks:
+        #                 depths_arr.append(walk_tree(noun_phrase.root, 0))
+        #         return np.median(depths_arr)            
+        #     else:
+        #         return len(vps)
         else:
             raise ValueError(f'Invalid type: {type_}')
+
+    def readability_(self, type_):
+        '''
+        Readability
+        
+        Args:
+            type_: gunning-fog, coleman-liau, dale-chall,
+            flesch-kincaid, linsear-write, spache, automatic, flesch 
+            
+        Reference:
+            https://pypi.org/project/py-readability-metrics/
+        '''
+        res = None
+        
+        if type_ not in ['gunning-fog', 'coleman-liau', 'dale-chall', 'flesch-kincaid', 'linsear-write', 'spache', 'automatic', 'flesch']:
+            raise ValueError(f'Invalid type: {type_}')
+
+        try:
+            if type_ == 'gunning-fog':
+                res = self.readability.gunning_fog()
+            elif type_ == 'coleman-liau':
+                res = self.readability.coleman_liau()
+            elif type_ == 'flesch-kincaid':
+                res = self.readability.flesch_kincaid()
+            elif type_ == 'linsear-write':
+                res = self.readability.linsear_write()
+            elif type_ == 'spache':
+                res = self.readability.spache()
+            elif type_ == 'dale-chall':
+                res = self.readability.dale_chall()
+            elif type_ == 'automatic':
+                res = self.readability.ari()
+            elif type_ == 'flesch':
+                res = self.readability.flesch()
+            
+            # if type_ == 'automatic':
+            #     return res.score, res.grade_levels, res.ages
+            # elif type_ == 'flesch':
+            #     return res.score, res.grade_levels, res.ease
+            # elif type_ == 'dale-chall':
+            #     return res.score, res.grade_levels
+            # else:
+            #     return res.score, res.grade_level
+            
+            return res.score
+        
+        # Due to doc size <= 100
+        except ReadabilityException:
+            return 0
+
+    def output_all(self):
+        feats = {}
+        
+        for arg in ['NOUN', 'VERB', 'ADJ', 'ADV', 'LEX', 'CONT', 'FUNC']:
+            for reduce_ in ('sum', 'percent'):
+                feats['div_' + arg + '_' + reduce_] = self.diversity(arg, reduce_)
+
+        for arg in ['FPS', 'FPP', 'STP']:
+            for reduce_ in ('sum', 'percent'):
+                feats['pron_' + arg + '_' + reduce_] = self.pronoun(arg, reduce_)
+
+        for arg in ['NOUN', 'VERB', 'ADJ', 'ADV', 'PRON', 'DET', 'NUM', 'PUNCT', 'SYM'] + ['PRP', 'PRP$', 'WDT', 'CD', 'VBD'] + ['STOP', 'LOW', 'UP', 'NEG']:
+            for reduce_ in ('sum', 'percent'):
+                feats['quant_' + arg + '_' + reduce_] = self.quantity(arg, reduce_)
+        for arg in ['QUOTE', 'NP', 'CHAR', 'WORD', 'SENT', 'SYLL']:
+            feats['quant_' + arg + '_' + 'sum'] = self.quantity(arg, 'sum')
+
+        for arg in ['!','?', 'CAPS']:
+            for reduce_ in ('sum', 'percent'):
+                feats['senti_' + arg + '_' + reduce_] = self.sentiment(arg, reduce_)
+        for arg in ['POL', 'SUBJ']:
+            feats['senti_' + arg + '_' + 'sum'] = self.sentiment(arg, 'sum')
+
+        for arg in ['chars_per_word', 'words_per_sent', 'claus_per_sent', 'puncts_per_sent']:
+            feats['avg_' + arg + '_' + 'sum'] = self.average(arg)
+
+        for arg in ['ALL', 'NP']:
+            feats['med_st_' + arg + '_' + 'sum'] = self.syntax_tree(arg)
+
+        for arg in ['gunning-fog', 'coleman-liau', 'dale-chall', 'flesch-kincaid', 'linsear-write', 'spache', 'automatic', 'flesch']:
+            feats['read_' + arg + '_' + 'sum'] = self.readability_(arg)
+
+        return feats
+
+if __name__ == "__main__":
+    text = "I, you, we, $$, !?, HAHA, Claim: Nearly 5 million uncounted California ballots cast for Bernie Sanders were found on Hillary Clinton's private email server by the F.B.I. Rating: About this rating False\n\nFake news occasionally proves itself to be more amusing than annoying (i.e., actual satire rather than an attempt to fool readers with sensationalist clickbait), and an August 2016 article from the Nevada County Scooper hit that mark \u2014 deftly blending political controversies over Democratic presidential nominee Hillary Clinton's use of a private e-mail server, suggestions of election fraud, and claims by supporters of rival Bernie Sanders that their candidate had been cheated out of the nomination by a partisan Democratic National Committee into one short article that began:\n\nDemocratic nominee Hillary Clinton is in hot water again after nearly 5 million uncounted California electronic ballots were found on her email server by the F.B.I. The majority of those ballots cast were by Bernie Sanders supporters. The election commission has an emergency meeting scheduled for tomorrow morning to discuss a possible vote recount which will include the newly-found ballots. Ms. Clinton has already come under fire during this election cycle over using her private email server for personal use, including storing and sending classified information with it. There has been a formal investigation, but no charges have been filed in that case. Some of the charges are facing several charges.\n\n\n\nAlas for those who might wish to believe that some or all of the above is true, the Nevada County Scooper's \"Manifesto\" notes that the site is all about fake news and satire:"
+    doc = NonLatentFeatures(text)
+
+    # FIX THESE UP
+    print('\nDiversity')
+    for arg in ['NOUN', 'VERB', 'ADJ', 'ADV', 'LEX', 'CONT', 'FUNC']:
+        for reduce_ in ('sum', 'percent'):
+            print(arg, reduce_, ': ', doc.diversity(arg, reduce_))
+
+    print('\nPronoun')
+    for arg in ['FPS', 'FPP', 'STP']:
+        for reduce_ in ('sum', 'percent'):
+            print(arg, reduce_, ': ', doc.pronoun(arg, reduce_))
+
+    print('\nQuantity')
+    for arg in ['NOUN', 'VERB', 'ADJ', 'ADV', 'PRON', 'DET', 'NUM', 'PUNCT', 'SYM'] + ['PRP', 'PRP$', 'WDT', 'CD', 'VBD'] + ['STOP', 'LOW', 'UP', 'NEG']:
+        for reduce_ in ('sum', 'percent'):
+            print(arg, reduce_, ': ', doc.quantity(arg, reduce_))        
+    for arg in ['QUOTE', 'NP', 'CHAR', 'WORD', 'SENT', 'SYLL']:
+        print(arg, 'sum', ': ', doc.quantity(arg, 'sum'))
+
+    print('\nSentiment')
+    for arg in ['!','?', 'CAPS']:
+        for reduce_ in ('sum', 'percent'):
+            print(arg, reduce_, ': ', doc.sentiment(arg, reduce_))
+    for arg in ['POL', 'SUBJ']:
+        print(arg, 'sum', ': ', doc.sentiment(arg, 'sum'))
+
+    print('\nAverage')
+    for arg in ['chars_per_word', 'words_per_sent', 'claus_per_sent', 'puncts_per_sent']:
+        print(arg, ': ', doc.average(arg))
+
+    print('\nSyntaxTreeMedianDepth')
+    for arg in ['ALL', 'NP']:
+        print(arg, ': ', doc.syntax_tree(arg))
+
+    print('\nReadability')
+    for arg in ['gunning-fog', 'coleman-liau', 'dale-chall', 'flesch-kincaid', 'linsear-write', 'spache', 'automatic', 'flesch']:
+        print(arg, ': ', doc.readability_(arg))
+        
+    print(doc.output_all())
+    
