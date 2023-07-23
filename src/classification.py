@@ -141,6 +141,11 @@ class Pipeline:
 
 class MachineLearningClassifier:
     def __init__(self, random_state=42):
+        self.logistic_regression = LogisticRegression(max_iter=1000, random_state=random_state)
+        self.svc = SVC(random_state=random_state)
+        self.decision_tree = DecisionTreeClassifier(random_state=random_state)
+        self.xgboost = XGBClassifier(objective="binary:logistic", random_state=random_state)
+
         self._names = [
             "Logistic Regression",
             "SVC",
@@ -153,17 +158,17 @@ class MachineLearningClassifier:
         ]
         self._classifiers = [
             GridSearchCV(
-                LogisticRegression(max_iter=1000, random_state=random_state),
+                self.logistic_regression,
                 {"C": [0.8, 1, 1.2], "solver": ["lbfgs", "liblinear"]},
                 n_jobs=-1
             ),
             GridSearchCV(
-                SVC(random_state=random_state),
+                self.svc,
                 {"C": [0.8, 1, 1.2], "kernel": ["linear", "poly", "rbf", "sigmoid"]},
                 n_jobs=-1
             ),
             GridSearchCV(
-                DecisionTreeClassifier(random_state=random_state),
+                self.decision_tree,
                 {"criterion": ["gini", "entropy"], "max_depth": [3, 5, 7, 9, None], "max_features": [0.3, "sqrt", 1.0], "min_samples_split": [2, 3, 4]},
                 n_jobs=-1
             ),
@@ -188,7 +193,7 @@ class MachineLearningClassifier:
                 n_jobs=-1
             ),
             GridSearchCV(
-                XGBClassifier(objective="binary:logistic", random_state=random_state),
+                self.xgboost,
                 {"eta": [0.2, 0.3, 0.4, 0.5], "max_depth": [2, 4, 6, 8, 10], "lambda": [1, 1.2, 1.5]},
                 n_jobs=-1
             ),
