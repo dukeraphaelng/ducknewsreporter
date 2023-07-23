@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import MinMaxScaler
@@ -27,18 +27,25 @@ class Pipeline:
         self.similarity = similarity
         self.sentiment = sentiment
     
-    def load_dataset_from_file(self, path: str):
-        df = pd.read_csv(path)
-        y = df["label"].to_numpy()
-        labels_to_drop = ["label"]
-        if not self.similarity:
-            labels_to_drop.append("tf_idf_1_2_harmonic_mean")
-        if not self.sentiment:
-            labels_to_drop.extend(("subjectivity", "polarity"))
-        X = df.drop(labels_to_drop, axis=1).to_numpy()
-        return (X, y)
+    def load_dataset_from_file(self, dir = "data/Horne2017_FakeNewsData/Buzzfeed"):
+        base = Path(dir)
+        sets = {}
+        for name in ["train", "valid", "test"]:
+            df = pd.read_csv(base.joinpath(f"features_{name}.csv"))
+            y = df["label"].to_numpy()
+            labels_to_drop = ["label"]
+            if not self.similarity:
+                labels_to_drop.append("tf_idf_1_2_harmonic_mean")
+            if not self.sentiment:
+                labels_to_drop.extend(("subjectivity", "polarity"))
+            X = df.drop(labels_to_drop, axis=1).to_numpy()
+            sets[name] = (X, y)
+        X_train, y_train = sets["train"]
+        X_valid, y_valid = sets["valid"]
+        X_test, y_test = sets["test"]
+        return (X_train, X_valid, X_test, y_train, y_valid, y_test)
 
-    def load_dataset(self, quiet=False, save: Optional[str]=None):
+    def load_dataset(self, random_state=42, quiet=False, save_dir: Optional[str]=None):
         """Performs the following work in order:
          - Load the dataset and join context
          - Extracts sentiment features
@@ -122,21 +129,28 @@ class Pipeline:
             X = np.hstack((X, df["polarity"].to_numpy().reshape((-1, 1))))
         y = df["label"].apply(int).to_numpy()
 
-        # Scale features
-        scaler = MinMaxScaler(feature_range=(0, 0.99))
-        X = scaler.fit_transform(X)
+        # Datasets: 60, 20, 20 split on train, valid, test
+        X1, X_test, y1, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state, stratify=y)
+        X_train, X_valid, y_train, y_valid = train_test_split(X1, y1, test_size=0.25, random_state=random_state, stratify=y1)
 
-        if save:
-            base = Path(save)
+        # Scale features
+        scaler = MinMaxScaler(feature_range=(0, 1))
+        X_train = scaler.fit_transform(X_train)
+        X_valid = scaler.transform(X_valid)
+        X_test = scaler.transform(X_test)
+
+        if save_dir:
+            base = Path(save_dir)
             labels = ["label", *[f"bert_{n}" for n in range(len(df["content_bert"][0]))]]
             if self.similarity:
                 labels.append("tf_idf_1_2_harmonic_mean")
             if self.sentiment:
                 labels.extend(("subjectivity", "polarity"))
-            df_out = pd.DataFrame(np.hstack((y.reshape((-1, 1)), X)), columns=labels)
-            df_out.to_csv(base.joinpath("features.csv"), index=False)
+            for (name, XX, yy) in [("train", X_train, y_train), ("valid", X_valid, y_valid), ("test", X_test, y_test)]:
+                df_out = pd.DataFrame(np.hstack((yy.reshape((-1, 1)), XX)), columns=labels)
+                df_out.to_csv(base.joinpath(f"features_{name}.csv"), index=False)
 
-        return (X, y)
+        return (X_train, X_valid, X_test, y_train, y_valid, y_test)
 
 
 class MachineLearningClassifier:
