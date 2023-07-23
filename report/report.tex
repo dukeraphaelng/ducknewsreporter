@@ -1,0 +1,108 @@
+\documentclass{article}
+\usepackage[left=2.7cm, right=2.7cm, top=3cm]{geometry} % Change margins
+\usepackage{mathtools} % falign
+\usepackage{amsmath} % Basic maths
+\usepackage{amssymb} % For some symbols
+\usepackage{bm} % bold math
+\usepackage{tikz} % For drawing trees
+\usepackage{tikz-qtree} % For drawing trees
+\usetikzlibrary{trees, positioning, arrows.meta, calc} % For drawing trees
+\usepackage{xcolor} % Colouring equations
+\usepackage{fancyhdr} % Cool headers
+\usepackage{tabularx} % Fixed tables
+\usepackage{graphicx}
+\usepackage{multirow} % table merge row
+\usepackage{color, colortbl} % colouring
+\usepackage{tcolorbox} % for boxed stuffs, text + math mode
+\usepackage{alltt} % better verbatim
+\usepackage{wrapfig} % wrapping images with env wrapfigure
+\usepackage[hidelinks]{hyperref}
+\usepackage{booktabs} % better tables
+\usepackage{float} % float tables
+\usepackage[underline=false]{pgf-umlsd} % uml sequence diagrams
+\restylefloat{table}
+\usepackage{minted} % code highlighting
+\usepackage{longtable} % tables that span multiple pages
+\usepackage{enumitem} % \begin{enumerate}[label=(\alph*)]
+\usepackage{pgfplots}
+\usepackage[font=small,labelfont=bf]{caption}
+
+\usepackage{subfig}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\pgfplotsset{compat=1.16} % Backwards compatibility
+
+\usepackage{xargs} % Use more than one optional parameter in a new commands
+
+\usepackage[sorting=none]{biblatex}
+\addbibresource{refs.bib}
+
+% A really nice TODO package and helpers
+% https://tex.stackexchange.com/questions/9796/how-to-add-todo-notes
+\setlength {\marginparwidth }{2cm}
+\usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
+\newcommandx{\unsure}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
+\newcommandx{\add}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=blue,#1]{#2}}
+\newcommandx{\info}[2][1=]{\todo[linecolor=green,backgroundcolor=green!25,bordercolor=green,#1]{#2}}
+\newcommandx{\improvement}[2][1=]{\todo[linecolor=magenta,backgroundcolor=magenta!25,bordercolor=magenta,#1]{#2}}
+
+\hypersetup{
+  colorlinks=true,
+  urlcolor=blue,
+  linkcolor=black,
+  citecolor=black
+}
+
+% circled numbers
+\newcommand*\circled[1]{\tikz[baseline = (char.base)]{%
+            \node[shape=circle,draw,inner sep=2pt] (char) {#1};}}%
+
+% For use in align*
+\newcommand*\mathcomment[1]{&&{#1}}
+\newcommand*\mathcommentt[1]{&&{\text{#1}}}
+
+\usepackage{amsthm} % For Proofs
+\newtheorem*{remark}{Remark}
+\renewcommand\qedsymbol{}
+
+\begin{document}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{COMP9491: Project Report}
+\rhead{Duck News Reporters}
+\cfoot[C]{\thepage}
+
+\renewcommand{\headrulewidth}{1pt}
+\renewcommand{\footrulewidth}{0.5pt}
+
+\title{COMP9491: Applied Artificial Intelligence\\\Huge{Project Report}}
+\author{%
+  Dhruv Agrawal\\
+  \texttt{z5361800@unsw.edu.au}
+  \and
+  Duke Nguyen\\
+  \texttt{z5398432@unsw.edu.au}
+  \and
+  Jim Tang\\
+  \texttt{z5208565@unsw.edu.au}
+}
+
+\maketitle
+
+\listoftodos % DELETE THIS BEFORE SUBMIT
+
+\section{Introduction}
+\thispagestyle{empty}
+
+\todo[inline]{TODO}
+
+\cleardoublepage
+\pagebreak
+
+\nocite{*}
+\printbibliography
+
+\end{document}
