@@ -290,7 +290,7 @@ class NonLatentFeatures():
         PRP$: possessive pronoun
         WDT: wh-determinant
         CD: cardinal
-        VBD: verb
+        VBD: past tense verb
         STOP: stopwords
         LOW: lowercase
         UP: uppercase
