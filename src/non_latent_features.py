@@ -1,3 +1,4 @@
+### Installation Instruction
 ## spaCy Installation
 # pip install -U pip setuptools wheel
 # pip install -U spacy
@@ -17,48 +18,91 @@ from readability.exceptions import ReadabilityException
 import syllables
 import contractions
 
+# TODO: Add example and methods here
 class NonLatentFeatures():
-    '''
-    Reference:
-        Zhou, X. and Zafarani, R., 2020. A survey of fake news: 
-        Fundamental theories, detection methods, and opportunities. 
-        ACM Computing Surveys (CSUR), 53(5), pp.1-40.
-        
-        Horne, B. and Adali, S., 2017, May. This just in: Fake news 
-        packs a lot in title, uses simpler, repetitive content in 
-        text body, more similar to satire than real news. In 
-        Proceedings of the international AAAI conference on web 
-        and social media (Vol. 11, No. 1, pp. 759-766).
-        
-        Garg, S. and Sharma, D.K., 2022. Linguistic features based 
-        framework for automatic fake news detection. Computers & 
-        Industrial Engineering, 172, p.108432.
-    '''
     def __init__(self, raw):
+        """Extract non latent features from document
+        
+        Parameters
+        ----------
+        raw : string
+            Document to extract non latent features. Document should
+            not contain non-ascii characters
+
+        Returns
+        -------
+        tr : NonLatentFeatures()
+            A Non Latent Feature instance
+
+        Reference
+        ---------
+            Garg, S. and Sharma, D.K., 2022. Linguistic features based 
+            framework for automatic fake news detection. Computers & 
+            Industrial Engineering, 172, p.108432.
+            
+            Horne, B. and Adali, S., 2017, May. This just in: Fake news 
+            packs a lot in title, uses simpler, repetitive content in 
+            text body, more similar to satire than real news. In 
+            Proceedings of the international AAAI conference on web 
+            and social media (Vol. 11, No. 1, pp. 759-766).
+
+            Zhou, X. and Zafarani, R., 2020. A survey of fake news: 
+            Fundamental theories, detection methods, and opportunities. 
+            ACM Computing Surveys (CSUR), 53(5), pp.1-40.        
+        """
+        
         # Expand contractions
         self.raw = ' '.join(contractions.fix(word) for word in raw.split())
 
+        # Load spaCy
         nlp = spacy.load("en_core_web_sm")
         nlp.add_pipe('spacytextblob')
-
+        
+        # Run spaCy pipeline on the raw document
         self.doc = nlp(self.raw)
-    
+
+        # Whether pieline has been run
         self.run_loop = False
+        
+        # Item counter in some categories (including POS tag category)
         self.counter = {}
+        
+        # Unique items (stored as sets) in some categories (including POS tag category)
         self.unique = {}
-        self.avg_chars_per_word = []
+        
+        # Items (stored in lists) in some categories
         self.arr = {}
         
         # For readability indices
         self.readability = Readability(self.raw)        
 
     def _get_tag_count(self, arr):
+        '''Get the counts given a list of POS tags
+        
+        Parameters
+        ----------
+        arr : array-like
+            list of tags
+            
+        Returns
+        -------
+        array-like
+            list of count for each POS tags
+        '''
         return [self.counter.get(tag, 0) for tag in arr]
 
     def _get_num_clauses(self):
-        '''
+        """Get the number of clauses from a document
+        Returns
+        -------
+        int
+            number of clauses from document
+        
+        Reference
+        ---------
+        Implementation from:
         https://subscription.packtpub.com/book/data/9781838987312/2/ch02lvl1sec13/splitting-sentences-into-clauses
-        '''
+        """
         def find_root_of_sentence(doc):
             root_token = None
             for token in doc:
@@ -70,8 +114,7 @@ class NonLatentFeatures():
             other_verbs_count = 0
             for token in doc:
                 ancestors = list(token.ancestors)
-                if (token.pos_ == "VERB" and len(ancestors) == 1\
-                    and ancestors[0] == root_token):
+                if ((token.pos_ == "VERB") and (len(ancestors) == 1) and (ancestors[0] == root_token)):
                     other_verbs_count += 1
             return other_verbs_count
 
@@ -84,6 +127,8 @@ class NonLatentFeatures():
         return num_clauses
 
     def _loop_runner(self):
+        """Fill up the self.unique, self.counter, self.arr dictionaries
+        by processing the document"""
         if not self.run_loop:
             for token in self.doc:
                 self.unique[token.pos_] = self.unique.get(token.pos_, set())
@@ -122,16 +167,34 @@ class NonLatentFeatures():
         self.run_loop = True
     
     def diversity(self, type_, reduce_):
-        '''
-        Diversity
+        """Extract diversity (div) non-latent features
         
-        Args:
-            type_: lexical, content, function, noun, verb, adj, adv
-        '''
+        Parameters
+        ----------
+        type_ : {'NOUN', 'VERB', 'ADJ', 'ADV', 'LEX', 'CONT', 'FUNC'}
+        reduce_ : {'sum', 'percent'}
         
+        Returns
+        -------
+        int / float
+            count or percentage of the respective type_
+        
+        Note
+        ----
+        NOUN: noun
+        VERB: verb
+        ADJ: adjective
+        ADV: adverb
+        LEX: lexical
+        CONT: content
+        FUNC: function
+
+        Some further definitions of content and function words can be found here
+        https://pronuncian.com/content-and-function-words#:~:text=Content%20words%20are%20usually%20nouns,focus%20his%20or%20her%20attention
+        """
+        
+        # Process the document
         self._loop_runner()
-        
-        # ARGS = ['NOUN', 'VERB', 'ADJ', 'ADV', 'LEX', 'CONT', 'FUNC']
         
         if reduce_ not in ('sum', 'percent'):
             raise ValueError(f'Invalid reduction method: {reduce_}')
@@ -150,10 +213,8 @@ class NonLatentFeatures():
                 
         elif type_ in ('LEX', 'CONT', 'FUNC'):
             filtered_keys = []
-            # https://pronuncian.com/content-and-function-words#:~:text=Content%20words%20are%20usually%20nouns,focus%20his%20or%20her%20attention.
             if type_ == 'LEX':
                 filtered_keys = ['ADJ', 'ADP', 'ADV', 'AUX', 'CONJ', 'CCONJ', 'DET', 'INTJ', 'NOUN', 'NUM', 'PART', 'PRON', 'PROPN', 'PUNCT', 'SCONJ', 'VERB']
-                # Can do np.sum or np.avg on this value or divide them by the len(self.doc)
             elif type_ == 'CONT':
                 filtered_keys = ['ADJ', 'ADV', 'ADJ', 'NOUN', 'PROPN', 'VERB']
             elif type_ == 'FUNC':
@@ -164,23 +225,30 @@ class NonLatentFeatures():
             if reduce_ == 'sum':
                 return np.sum(arr)
             else:
-                # total = np.sum(self._get_tag_count(filtered_keys))
-                # if total == 0:
-                #     return 0
-                # return len(arr) / total
                 return np.sum(arr) / len(self.doc)
 
         else:
             raise ValueError(f'Invalid type: {type_}')
             
     def pronoun(self, type_, reduce_):
-        '''
-        Non-immediacy
+        """Extract pronoun (pron) non-latent features
         
-        Args:
-            type_: FPS, FPP, STP
-            first-person-singular, first-person,plural, second-third-person
-        '''
+        Parameters
+        ----------
+        type_ : {'FPS', 'FPP', 'STP'}
+        reduce_ : {'sum', 'percent'}
+        
+        Returns
+        -------
+        int / float
+            count or percentage of the respective type_
+
+        Notes
+        -----
+        FPS: first-person-singular
+        FPP: first-person,plural
+        STP: second-third-person
+        """
         self._loop_runner()
 
         if reduce_ not in ('sum', 'percent'):
@@ -195,23 +263,53 @@ class NonLatentFeatures():
             raise ValueError(f'Invalid type: {type_}')
     
     def quantity(self, type_, reduce_='percent'):
-        '''
-        Quantity
+        """Extract quantity (quant) non-latent features
         
-        Args:
-            type_: quotations, words, sents, chars, 
-            noun_phrases, lower, upper, adv, det, nouns, adj, 
-            articles, negations, syllables, verbs, analytic, comparison, 
-            punctuations, wh_determinants, cardinals, personal_pronouns,
-            posessive_pronouns, past_tense, proper_nouns, verb_phrases, stop_words
+        Parameters
+        ----------
+        type_ : {'NOUN', 'VERB', 'ADJ', 'ADV', 'PRON', 'DET', 'NUM', 'PUNCT', 'SYM', 'PRP', 'PRP$', 'WDT', 'CD', 'VBD', 'STOP', 'LOW', 'UP', 'NEG', 'QUOTE', 'NP', 'CHAR', 'WORD', 'SENT', 'SYLL'}
+        reduce_ : {'sum', 'percent'}
+        
+        Returns
+        -------
+        int / float
+            count or percentage of the respective type_
 
-            reduce_: count, percent
-        '''
+        Notes
+        -----
+        NOUN: noun
+        VERB: verb
+        ADJ: adjective
+        ADV: adverb
+        PRON: pronoun
+        DET: determinant
+        NUM: numeric
+        PUNCT: punctuation
+        SYM: symbol
+        PRP: personal pronoun
+        PRP$: possessive pronoun
+        WDT: wh-determinant
+        CD: cardinal
+        VBD: verb
+        STOP: stopwords
+        LOW: lowercase
+        UP: uppercase
+        NEG: negation
+        
+        Items from here cannot be reduced using 'percent'
+        
+        QUOTE: quote
+        NP: noun phrase
+        CHAR: character
+        WORD: word
+        SENT: sentence
+        SYLL: syllable
+        """
         self._loop_runner()
         
         if reduce_ not in ('sum', 'percent'):
             raise ValueError(f'Invalid reduction method: {reduce_}')
-        
+                
         # POS-related
         if type_ in ['NOUN', 'VERB', 'ADJ', 'ADV', 'PRON', 'DET', 'NUM', 'PUNCT', 'SYM'] + ['PRP', 'PRP$', 'WDT', 'CD', 'VBD'] + ['STOP', 'LOW', 'UP', 'NEG']:
             # POS (UPOS) or TAG (English POS) or others
@@ -241,21 +339,32 @@ class NonLatentFeatures():
             else:
                 raise ValueError(f'Invalid type: {type_}')
         
-        # CAN ONLY BE ['NOUN', 'VERB', 'ADJ', 'ADV', 'PRON', 'DET', 'NUM', 'PUNCT', 'SYM'] + ['PRP', 'PRP$', 'WDT', 'CD', 'VBD'] + ['STOP', 'LOW', 'UP', 'NEG']
         if reduce_ == 'sum':
             return sum_
         else:
             return sum_ / len(self.doc)
 
     def sentiment(self, type_, reduce_='percent'):
-        '''
-        Sentiment
+        """Extract sentiment non-latent features
         
-        Args:
-            type_: anx-ang-sad, exclamation_mark, neg_word, pos_word,
-            polarity, subjectivity, avg_neg_senti, avg_pos_senti, all_caps
-            reduce_: count, percent 
-        '''
+        Parameters
+        ----------
+        type_ : {'!','?', 'CAPS', 'POL', 'SUBJ'}
+        reduce_ : {'sum', 'percent'}
+        
+        Returns
+        -------
+        float
+            count or percentage of the respective type_
+
+        Notes
+        -----
+        !: exclamation mark
+        ?: question mark
+        CAPS: words in all caps
+        POL: polarity
+        SUBJ: subjectivity
+        """
         self._loop_runner()
         
         if reduce_ not in ('sum', 'percent'):
@@ -280,13 +389,26 @@ class NonLatentFeatures():
                 raise ValueError(f'Invalid type: {type_}')
 
     def average(self, type_):
-        '''
-        Complexity
+        """Extract average non-latent features
         
-        Args:
-            type_: chars_per_word, words_per_sent, claus_per_sent, puncts_per_sent
-        '''
-        self._loop_runner()        
+        Parameters
+        ----------
+        type_ : {'chars_per_word', 'words_per_sent', 'puncts_per_sent', 'claus_per_sent'}
+        
+        Returns
+        -------
+        float
+            average number of a given item
+
+        Notes
+        -----
+        chars_per_word : average number of characters per word
+        words_per_sent : average number of words per sentence
+        puncts_per_sent : average number of punctuations per sentence
+        claus_per_sent : average number of clauses per sentence
+        """
+        self._loop_runner()
+
         if type_ == 'chars_per_word':
             return np.mean(self.arr['chars_per_word'])
         elif type_ == 'words_per_sent':
@@ -305,12 +427,18 @@ class NonLatentFeatures():
             raise ValueError(f'Invalid type: {type_}')
 
     def syntax_tree(self, type_):
-        '''
-        Syntax Tree
+        """Extract median depth of syntax tree non-latent features
         
-        Args:
-            type_: all, noun_phrase, verb_phrase
-        '''
+        Parameters
+        ----------
+        type_ : {'ALL', 'NP'}
+        
+        Returns
+        -------
+        int
+            median median depth of the total (ALL) or noun phrase (NP) syntax tree
+        """
+        
         # https://stackoverflow.com/questions/64591644/how-to-get-height-of-dependency-tree-with-spacy
         def walk_tree(node, depth):
             if node.n_lefts + node.n_rights > 0:
@@ -318,49 +446,38 @@ class NonLatentFeatures():
             else:
                 return depth
 
+        depths_arr = []
         if type_ == 'ALL':
-            depths_arr = []
             for sent in self.doc.sents:
                 depths_arr.append(walk_tree(sent.root, 0))
-            
-            return np.median(depths_arr)
         elif type_== 'NP':
-            depths_arr = []
             for sent in self.doc.sents:
                 for noun_phrase in sent.noun_chunks:
                     depths_arr.append(walk_tree(noun_phrase.root, 0))
-            return np.median(depths_arr)
-        # elif type_== 'VP':
-        #     vps = []
-        #     for sent in self.doc.sents:
-        #         # https://devpress.csdn.net/python/63045ba97e6682346619a782.html
-        #         pattern = r'<VERB>?<ADV>*<VERB>+'
-        #         doc = textacy.Doc(sent, lang='en_core_web_sm')
-        #         lists = textacy.extract.token_matches(doc, pattern)
-        #         vps.concat(lists)
-
-        #     if reduce_ == 'median_depth':
-        #         depths_arr = []
-        #         for sent in self.doc.sents:
-        #             for noun_phrase in sent.noun_chunks:
-        #                 depths_arr.append(walk_tree(noun_phrase.root, 0))
-        #         return np.median(depths_arr)            
-        #     else:
-        #         return len(vps)
         else:
             raise ValueError(f'Invalid type: {type_}')
+        return np.median(depths_arr)
 
     def readability_(self, type_):
-        '''
-        Readability
+        """Extract readability non-latent features
         
-        Args:
-            type_: gunning-fog, coleman-liau, dale-chall,
-            flesch-kincaid, linsear-write, spache, automatic, flesch 
-            
-        Reference:
-            https://pypi.org/project/py-readability-metrics/
-        '''
+        Parameters
+        ----------
+        type_ : {'gunning-fog', 'coleman-liau', 'dale-chall', 'flesch-kincaid', 'linsear-write', 'spache', 'automatic', 'flesch'}
+        
+        Returns
+        -------
+        float
+            readability score calculated using the respective method
+        
+        Note
+        ----
+        Document must have more than 100 words, other 0 will be returned
+        
+        Reference
+        ---------
+        https://pypi.org/project/py-readability-metrics/
+        """            
         res = None
         
         if type_ not in ['gunning-fog', 'coleman-liau', 'dale-chall', 'flesch-kincaid', 'linsear-write', 'spache', 'automatic', 'flesch']:
@@ -384,15 +501,6 @@ class NonLatentFeatures():
             elif type_ == 'flesch':
                 res = self.readability.flesch()
             
-            # if type_ == 'automatic':
-            #     return res.score, res.grade_levels, res.ages
-            # elif type_ == 'flesch':
-            #     return res.score, res.grade_levels, res.ease
-            # elif type_ == 'dale-chall':
-            #     return res.score, res.grade_levels
-            # else:
-            #     return res.score, res.grade_level
-            
             return res.score
         
         # Due to doc size <= 100
@@ -400,6 +508,7 @@ class NonLatentFeatures():
             return 0
 
     def output_all(self):
+        '''Output all possible features of the given document into a dictionary'''
         feats = {}
         
         for arg in ['NOUN', 'VERB', 'ADJ', 'ADV', 'LEX', 'CONT', 'FUNC']:
@@ -432,47 +541,3 @@ class NonLatentFeatures():
             feats['read_' + arg + '_' + 'sum'] = self.readability_(arg)
 
         return feats
-
-if __name__ == "__main__":
-    text = "I, you, we, $$, !?, HAHA, Claim: Nearly 5 million uncounted California ballots cast for Bernie Sanders were found on Hillary Clinton's private email server by the F.B.I. Rating: About this rating False\n\nFake news occasionally proves itself to be more amusing than annoying (i.e., actual satire rather than an attempt to fool readers with sensationalist clickbait), and an August 2016 article from the Nevada County Scooper hit that mark \u2014 deftly blending political controversies over Democratic presidential nominee Hillary Clinton's use of a private e-mail server, suggestions of election fraud, and claims by supporters of rival Bernie Sanders that their candidate had been cheated out of the nomination by a partisan Democratic National Committee into one short article that began:\n\nDemocratic nominee Hillary Clinton is in hot water again after nearly 5 million uncounted California electronic ballots were found on her email server by the F.B.I. The majority of those ballots cast were by Bernie Sanders supporters. The election commission has an emergency meeting scheduled for tomorrow morning to discuss a possible vote recount which will include the newly-found ballots. Ms. Clinton has already come under fire during this election cycle over using her private email server for personal use, including storing and sending classified information with it. There has been a formal investigation, but no charges have been filed in that case. Some of the charges are facing several charges.\n\n\n\nAlas for those who might wish to believe that some or all of the above is true, the Nevada County Scooper's \"Manifesto\" notes that the site is all about fake news and satire:"
-    doc = NonLatentFeatures(text)
-
-    # FIX THESE UP
-    print('\nDiversity')
-    for arg in ['NOUN', 'VERB', 'ADJ', 'ADV', 'LEX', 'CONT', 'FUNC']:
-        for reduce_ in ('sum', 'percent'):
-            print(arg, reduce_, ': ', doc.diversity(arg, reduce_))
-
-    print('\nPronoun')
-    for arg in ['FPS', 'FPP', 'STP']:
-        for reduce_ in ('sum', 'percent'):
-            print(arg, reduce_, ': ', doc.pronoun(arg, reduce_))
-
-    print('\nQuantity')
-    for arg in ['NOUN', 'VERB', 'ADJ', 'ADV', 'PRON', 'DET', 'NUM', 'PUNCT', 'SYM'] + ['PRP', 'PRP$', 'WDT', 'CD', 'VBD'] + ['STOP', 'LOW', 'UP', 'NEG']:
-        for reduce_ in ('sum', 'percent'):
-            print(arg, reduce_, ': ', doc.quantity(arg, reduce_))        
-    for arg in ['QUOTE', 'NP', 'CHAR', 'WORD', 'SENT', 'SYLL']:
-        print(arg, 'sum', ': ', doc.quantity(arg, 'sum'))
-
-    print('\nSentiment')
-    for arg in ['!','?', 'CAPS']:
-        for reduce_ in ('sum', 'percent'):
-            print(arg, reduce_, ': ', doc.sentiment(arg, reduce_))
-    for arg in ['POL', 'SUBJ']:
-        print(arg, 'sum', ': ', doc.sentiment(arg, 'sum'))
-
-    print('\nAverage')
-    for arg in ['chars_per_word', 'words_per_sent', 'claus_per_sent', 'puncts_per_sent']:
-        print(arg, ': ', doc.average(arg))
-
-    print('\nSyntaxTreeMedianDepth')
-    for arg in ['ALL', 'NP']:
-        print(arg, ': ', doc.syntax_tree(arg))
-
-    print('\nReadability')
-    for arg in ['gunning-fog', 'coleman-liau', 'dale-chall', 'flesch-kincaid', 'linsear-write', 'spache', 'automatic', 'flesch']:
-        print(arg, ': ', doc.readability_(arg))
-        
-    print(doc.output_all())
-    
