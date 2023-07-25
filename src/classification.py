@@ -1,4 +1,5 @@
 import logging
+import pickle
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -23,6 +24,40 @@ from preprocess import Preprocessor
 # Sentiment comes from NonLatentFeatures now
 # from sentiment import TextBlobSentimentExtractor
 from textual_relevance import TextualRelevance
+
+
+class DataNormalizer:
+    def __init__(self, needs_standard_scaler, needs_min_max_scaler):
+        self.needs_standard_scaler = needs_standard_scaler
+        self.needs_min_max_scaler = needs_min_max_scaler
+        self.standard_scaler = StandardScaler()
+        self.min_max_scaler = MinMaxScaler(feature_range=(0, 1))
+    
+    def __getstate__(self):
+        return (
+            self.needs_standard_scaler,
+            self.needs_min_max_scaler,
+            self.standard_scaler,
+            self.min_max_scaler
+        )
+
+    def __setstate__(self, tup):
+        (
+            self.needs_standard_scaler,
+            self.needs_min_max_scaler,
+            self.standard_scaler,
+            self.min_max_scaler
+        ) = tup
+
+    def fit_transform(self, data):
+        data[:, self.needs_standard_scaler] = self.standard_scaler.fit_transform(data[:, self.needs_standard_scaler])
+        data[:, self.needs_min_max_scaler] = self.min_max_scaler.fit_transform(data[:, self.needs_min_max_scaler])
+        return data
+    
+    def transform(self, data):
+        data[:, self.needs_standard_scaler] = self.standard_scaler.transform(data[:, self.needs_standard_scaler])
+        data[:, self.needs_min_max_scaler] = self.min_max_scaler.transform(data[:, self.needs_min_max_scaler])
+        return data
 
 
 class Pipeline:
@@ -203,15 +238,10 @@ class Pipeline:
             else:
                 needs_min_max_scaler.append(i)
         
-        standard_scaler = StandardScaler()
-        X_train[:, needs_standard_scaler] = standard_scaler.fit_transform(X_train[:, needs_standard_scaler])
-        X_valid[:, needs_standard_scaler] = standard_scaler.transform(X_valid[:, needs_standard_scaler])
-        X_test[:, needs_standard_scaler] = standard_scaler.transform(X_test[:, needs_standard_scaler])
-
-        min_max_scaler = MinMaxScaler(feature_range=(0, 1))
-        X_train[:, needs_min_max_scaler] = min_max_scaler.fit_transform(X_train[:, needs_min_max_scaler])
-        X_valid[:, needs_min_max_scaler] = min_max_scaler.transform(X_valid[:, needs_min_max_scaler])
-        X_test[:, needs_min_max_scaler] = min_max_scaler.transform(X_test[:, needs_min_max_scaler])
+        normalizer = DataNormalizer(needs_standard_scaler, needs_min_max_scaler)
+        X_train = normalizer.fit_transform(X_train)
+        X_valid = normalizer.transform(X_valid)
+        X_test = normalizer.transform(X_test)
 
         if save_dir:
             base = Path(save_dir)
@@ -219,6 +249,8 @@ class Pipeline:
             for (name, XX, yy) in [("train", X_train, y_train), ("valid", X_valid, y_valid), ("test", X_test, y_test)]:
                 df_out = pd.DataFrame(np.hstack((yy.reshape((-1, 1)), XX)), columns=labels)
                 df_out.to_csv(base.joinpath(f"features_{name}.csv"), index=False)
+            with open(base.joinpath("scaler.pickle"), "wb") as f:
+                pickle.dump(normalizer, f)
 
         return (X_train, X_valid, X_test, y_train, y_valid, y_test)
 
