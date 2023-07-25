@@ -89,7 +89,7 @@ class TextualRelevance():
         '''Reduce word2vec tokenised text (words) to average vector
         
         Reference
-        -----
+        ---------
         Sitikhu, P., Pahi, K., Thapa, P. and Shakya, S., 2019, November. 
         A comparison of semantic similarity methods for maximum human interpretability. 
         In 2019 artificial intelligence for transforming business and society (AITB) 

@@ -36,10 +36,10 @@ class Preprocessor:
         if lemmatization:
             self._lemmatizer = WordNetLemmatizer()
         else:
-            self.lemmatizer = None
+            self._lemmatizer = None
         self._remove_stopwords = remove_stopwords
     
-    def preprocess(self, input: str) -> str:
+    def preprocess(self, input: str) -> Optional[str]:
         """Preprocess a string
 
         Args:
@@ -49,6 +49,12 @@ class Preprocessor:
             str: Preprocessed string
         """
         # Remove newlines
+        
+        if input is None:
+            return input
+        if not isinstance(input, str) and pd.isnull(input):
+            return input
+
         input.replace("\n", " ")
 
         if self._remove_non_ascii or self._remove_punctuation:
@@ -84,9 +90,16 @@ class Preprocessor:
         """
         return re.findall(r"\w+|[^\s\w]+", input)
     
+    def tokenize_opt(self, input: str) -> Optional[List[str]]:
+        if input is None:
+            return input
+        if not isinstance(input, str) and pd.isnull(input):
+            return input
+        return self.tokenize(input)        
+    
     def preprocess_and_tokenize(self, input: str) -> List[str]:
         return self.tokenize(self.preprocess(input))
-    
+        
     def preprocess_and_tokenize_opt(self, input: Optional[str]) -> Optional[List[str]]:
         """Same as preprocess_and_tokenize but it can accept optional values such as python None or pandas NaType
 
