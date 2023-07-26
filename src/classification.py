@@ -62,16 +62,27 @@ class DataNormalizer:
 
 @dataclass
 class Data:
+    # Standard 60/20/20 split
     X_train: np.ndarray
     X_valid: np.ndarray
     X_test: np.ndarray
     y_train: np.ndarray
     y_valid: np.ndarray
     y_test: np.ndarray
+    # A 80/20 split. Normalizer trained on the 80 split and applied to the test
+    # set only
+    X_train_valid: np.ndarray
+    X_test2: np.ndarray
+    y_train_valid: np.ndarray
+    y_test2: np.ndarray
 
     @property
     def train_valid_test(self):
         return (self.X_train, self.y_train, self.X_valid, self.y_valid, self.X_test, self.y_test)
+    
+    @property
+    def train_test(self):
+        return (self.X_train_valid, self.y_train_valid, self.X_test2, self.y_test2)
 
 
 class Pipeline:
@@ -124,7 +135,7 @@ class Pipeline:
     def load_dataset_from_file(self, dir = "data/Horne2017_FakeNewsData/Buzzfeed"):
         base = Path(dir)
         sets = {}
-        for name in ["train", "valid", "test"]:
+        for name in ["train", "valid", "test", "train_valid", "test2"]:
             df = pd.read_csv(base.joinpath(f"features_{name}.csv"))
             y = df["label"].to_numpy()
             labels_to_drop = ["label"]
@@ -140,7 +151,9 @@ class Pipeline:
         X_train, y_train = sets["train"]
         X_valid, y_valid = sets["valid"]
         X_test, y_test = sets["test"]
-        return Data(X_train, X_valid, X_test, y_train, y_valid, y_test)
+        X_train_valid, y_train_valid = sets["train_valid"]
+        X_test2, y_test = sets["test2"]
+        return Data(X_train, X_valid, X_test, y_train, y_valid, y_test, X_train_valid, X_test2, y_train_valid, y_test)
 
     def load_dataset(self, random_state=42, quiet=False, save_dir: Optional[str]=None):
         """Performs the following work in order:
@@ -228,8 +241,8 @@ class Pipeline:
         y = df["label"].apply(int).to_numpy()
 
         # Datasets: 60, 20, 20 split on train, valid, test
-        X1, X_test, y1, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state, stratify=y)
-        X_train, X_valid, y_train, y_valid = train_test_split(X1, y1, test_size=0.25, random_state=random_state, stratify=y1)
+        X_train_valid, X_test, y_train_valid, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state, stratify=y)
+        X_train, X_valid, y_train, y_valid = train_test_split(X_train_valid, y_train_valid, test_size=0.25, random_state=random_state, stratify=y_train_valid)
 
         # Scale features
         needs_standard_scaler = []
@@ -243,18 +256,22 @@ class Pipeline:
         normalizer = DataNormalizer(needs_standard_scaler, needs_min_max_scaler)
         X_train = normalizer.fit_transform(X_train)
         X_valid = normalizer.transform(X_valid)
-        X_test = normalizer.transform(X_test)
+        X_test1 = normalizer.transform(X_test)
+
+        normalizer2 = DataNormalizer(needs_standard_scaler, needs_min_max_scaler)
+        X_train_valid = normalizer2.fit_transform(X_train_valid)
+        X_test2 = normalizer2.transform(X_test)
 
         if save_dir:
             base = Path(save_dir)
             labels = ["label", *feature_labels]
-            for (name, XX, yy) in [("train", X_train, y_train), ("valid", X_valid, y_valid), ("test", X_test, y_test)]:
+            for (name, XX, yy) in [("train", X_train, y_train), ("valid", X_valid, y_valid), ("test", X_test1, y_test), ("train_valid", X_train_valid, y_train_valid), ("test2", X_test2, y_test)]:
                 df_out = pd.DataFrame(np.hstack((yy.reshape((-1, 1)), XX)), columns=labels)
                 df_out.to_csv(base.joinpath(f"features_{name}.csv"), index=False)
             with open(base.joinpath("scaler.pickle"), "wb") as f:
                 pickle.dump(normalizer, f)
 
-        return Data(X_train, X_valid, X_test, y_train, y_valid, y_test)
+        return Data(X_train, X_valid, X_test1, y_train, y_valid, y_test, X_train_valid, X_test2, y_train_valid, y_test)
 
 
 class MachineLearningClassifier:
