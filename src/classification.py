@@ -61,13 +61,11 @@ class DataNormalizer:
 
 
 class Pipeline:
-    _DIVERSITY_KEYS = ["div_NOUN_sum", "div_NOUN_percent", "div_VERB_sum", "div_VERB_percent", "div_ADJ_sum", "div_ADJ_percent", "div_ADV_sum", "div_ADV_percent", "div_LEX_sum", "div_LEX_percent", "div_CONT_sum", "div_CONT_percent", "div_FUNC_sum", "div_FUNC_percent"]
-    _PRONOUN_KEYS = ["pron_FPS_sum", "pron_FPS_percent", "pron_FPP_sum", "pron_FPP_percent", "pron_STP_sum", "pron_STP_percent"]
-    _QUANTITY_KEYS = ["quant_NOUN_sum", "quant_NOUN_percent", "quant_VERB_sum", "quant_VERB_percent", "quant_ADJ_sum", "quant_ADJ_percent", "quant_ADV_sum", "quant_ADV_percent", "quant_PRON_sum", "quant_PRON_percent", "quant_DET_sum", "quant_DET_percent", "quant_NUM_sum", "quant_NUM_percent", "quant_PUNCT_sum", "quant_PUNCT_percent", "quant_SYM_sum", "quant_SYM_percent", "quant_PRP_sum", "quant_PRP_percent", "quant_PRP$_sum", "quant_PRP$_percent", "quant_WDT_sum", "quant_WDT_percent", "quant_CD_sum", "quant_CD_percent", "quant_VBD_sum", "quant_VBD_percent", "quant_STOP_sum", "quant_STOP_percent", "quant_LOW_sum", "quant_LOW_percent", "quant_UP_sum", "quant_UP_percent", "quant_NEG_sum", "quant_NEG_percent", "quant_QUOTE_sum", "quant_NP_sum", "quant_CHAR_sum", "quant_WORD_sum", "quant_SENT_sum", "quant_SYLL_sum"]
-    _SENTIMENT_KEYS = ["senti_!_sum", "senti_!_percent", "senti_?_sum", "senti_?_percent", "senti_CAPS_sum", "senti_CAPS_percent", "senti_POL_sum", "senti_SUBJ_sum"]
-    _AVERAGE_KEYS = ["avg_chars_per_word_sum", "avg_words_per_sent_sum", "avg_claus_per_sent_sum", "avg_puncts_per_sent_sum"]
-    _MEDIAN_SYNTAX_TREE_KEYS = ["med_st_ALL_sum", "med_st_NP_sum"]
-    _READABILITY_KEYS = ["read_gunning-fog_sum", "read_coleman-liau_sum", "read_dale-chall_sum", "read_flesch-kincaid_sum", "read_linsear-write_sum", "read_spache_sum", "read_automatic_sum", "read_flesch_sum"]
+    _DIVERSITY_KEYS = ["div_FUNC_sum", "div_LEX_percent", "div_VERB_sum", "div_FUNC_percent", "div_CONT_percent", "div_ADV_percent", "div_NOUN_percent", "div_VERB_percent", "div_ADJ_percent"]
+    _PRONOUN_KEYS = ["pron_FPP_sum", "pron_FPS_sum"]
+    _QUANTITY_KEYS = ["quant_PRP$_sum", "quant_PUNCT_percent", "quant_PUNCT_sum", "quant_NEG_sum", "quant_UP_sum", "quant_UP_percent", "quant_VBD_percent", "quant_VBD_sum", "quant_NUM_sum", "quant_WDT_sum", "quant_QUOTE_sum", "quant_NEG_percent"]
+    _SENTIMENT_KEYS = ["senti_!_percent", "senti_CAPS_sum", "senti_?_sum"]
+    _AVERAGE_KEYS = ["avg_puncts_per_sent_sum"]
 
     @dataclass
     class NonLatentConfig:
@@ -76,8 +74,6 @@ class Pipeline:
         quantity: bool = True
         sentiment: bool = True
         average: bool = True
-        median_syntax_tree: bool = True
-        readability: bool = True
 
         def build_keys(self):
             keys = []
@@ -91,10 +87,6 @@ class Pipeline:
                 keys.extend(Pipeline._SENTIMENT_KEYS)
             if self.average:
                 keys.extend(Pipeline._AVERAGE_KEYS)
-            if self.median_syntax_tree:
-                keys.extend(Pipeline._MEDIAN_SYNTAX_TREE_KEYS)
-            if self.readability:
-                keys.extend(Pipeline._READABILITY_KEYS)
             return keys
 
         def build_drop_keys(self):
@@ -109,10 +101,6 @@ class Pipeline:
                 keys.extend(Pipeline._SENTIMENT_KEYS)
             if not self.average:
                 keys.extend(Pipeline._AVERAGE_KEYS)
-            if not self.median_syntax_tree:
-                keys.extend(Pipeline._MEDIAN_SYNTAX_TREE_KEYS)
-            if not self.readability:
-                keys.extend(Pipeline._READABILITY_KEYS)
             return keys
 
     def __init__(self, similarity=True, non_latent: Optional[NonLatentConfig]=NonLatentConfig()):

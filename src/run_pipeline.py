@@ -17,7 +17,7 @@ import numpy as np
 from newspaper import Article
 from transformers import BertTokenizer, TFBertModel
 
-from classification import DataNormalizer
+from classification import DataNormalizer, Pipeline
 from context import TextRankExtractor
 from non_latent_features import NonLatentFeatures
 from preprocess import Preprocessor
@@ -102,7 +102,9 @@ preprocessor_ascii = Preprocessor(
     remove_stopwords=False
 )
 input_content_only_ascii = preprocessor_ascii.preprocess(input_content)
-non_latent_features = NonLatentFeatures(input_content_only_ascii).output_all().values()
+non_latent_features = NonLatentFeatures(input_content_only_ascii).output_all()
+wanted_non_latent_keys = Pipeline.NonLatentConfig().build_keys()
+non_latent_features = [v for (k, v) in non_latent_features.items() if k in wanted_non_latent_keys]
 info("Non latent feature extraction...done")
 
 # BERT Feature extraction
