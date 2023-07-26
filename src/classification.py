@@ -60,6 +60,20 @@ class DataNormalizer:
         return data
 
 
+@dataclass
+class Data:
+    X_train: np.ndarray
+    X_valid: np.ndarray
+    X_test: np.ndarray
+    y_train: np.ndarray
+    y_valid: np.ndarray
+    y_test: np.ndarray
+
+    @property
+    def train_valid_test(self):
+        return (self.X_train, self.y_train, self.X_valid, self.y_valid, self.X_test, self.y_test)
+
+
 class Pipeline:
     _DIVERSITY_KEYS = ["div_FUNC_sum", "div_LEX_percent", "div_VERB_sum", "div_FUNC_percent", "div_CONT_percent", "div_ADV_percent", "div_NOUN_percent", "div_VERB_percent", "div_ADJ_percent"]
     _PRONOUN_KEYS = ["pron_FPP_sum", "pron_FPS_sum"]
@@ -126,7 +140,7 @@ class Pipeline:
         X_train, y_train = sets["train"]
         X_valid, y_valid = sets["valid"]
         X_test, y_test = sets["test"]
-        return (X_train, X_valid, X_test, y_train, y_valid, y_test)
+        return Data(X_train, X_valid, X_test, y_train, y_valid, y_test)
 
     def load_dataset(self, random_state=42, quiet=False, save_dir: Optional[str]=None):
         """Performs the following work in order:
@@ -240,7 +254,7 @@ class Pipeline:
             with open(base.joinpath("scaler.pickle"), "wb") as f:
                 pickle.dump(normalizer, f)
 
-        return (X_train, X_valid, X_test, y_train, y_valid, y_test)
+        return Data(X_train, X_valid, X_test, y_train, y_valid, y_test)
 
 
 class MachineLearningClassifier:
