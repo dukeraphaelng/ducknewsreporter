@@ -225,7 +225,11 @@ class NonLatentFeatures():
             if reduce_ == 'sum':
                 return np.sum(arr)
             else:
-                return np.sum(arr) / len(self.doc)
+                count__ = np.sum(self._get_tag_count(filtered_keys))
+                if count__ == 0:
+                    return 0
+                else:
+                    return np.sum(arr) / count__
 
         else:
             raise ValueError(f'Invalid type: {type_}')
