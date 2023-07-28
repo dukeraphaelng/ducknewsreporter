@@ -6,11 +6,8 @@ from typing import Any, Dict, Optional
 
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV, train_test_split
-from sklearn.naive_bayes import GaussianNB
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
@@ -276,7 +273,7 @@ class Pipeline:
 
 class MachineLearningClassifier:
     def __init__(self, random_state=42):
-        self.logistic_regression = LogisticRegression(max_iter=1000, random_state=random_state)
+        self.logistic_regression = LogisticRegression(max_iter=3000, random_state=random_state)
         self.svc = SVC(random_state=random_state)
         self.decision_tree = DecisionTreeClassifier(random_state=random_state)
         self.xgboost = XGBClassifier(objective="binary:logistic", random_state=random_state)
@@ -285,52 +282,50 @@ class MachineLearningClassifier:
             "Logistic Regression",
             "SVC",
             "Decision Tree",
-            "KNN",
-            "Gaussian NB",
-            "Random Forest",
-            "AdaBoost",
             "XGBoost",
         ]
         self._classifiers = [
             GridSearchCV(
                 self.logistic_regression,
-                {"C": [0.8, 1, 1.2], "solver": ["lbfgs", "liblinear"]},
-                n_jobs=-1
+                {
+                    "C": [0.2, 0.4, 0.6, 0.8, 1.0, 1.2],
+                    "solver": ["lbfgs", "liblinear"]
+                },
+                n_jobs=-1,
+                scoring="f1"
             ),
             GridSearchCV(
                 self.svc,
-                {"C": [0.8, 1, 1.2], "kernel": ["linear", "poly", "rbf", "sigmoid"]},
-                n_jobs=-1
+                {
+                    "C": [0.2, 0.4, 0.6, 0.8, 1.0, 1.2],
+                    "kernel": ["rbf", "poly", "sigmoid"],
+                    "gamma": ["scale", 0.01, 0.05],
+                    "class_weight": [None, "balanced"]
+                },
+                n_jobs=-1,
+                scoring="f1"
             ),
             GridSearchCV(
                 self.decision_tree,
-                {"criterion": ["gini", "entropy"], "max_depth": [3, 5, 7, 9, None], "max_features": [0.3, "sqrt", 1.0], "min_samples_split": [2, 3, 4]},
-                n_jobs=-1
-            ),
-            GridSearchCV(
-                KNeighborsClassifier(),
-                {"n_neighbors": [3, 5, 7, 9]},
-                n_jobs=-1
-            ),
-            GridSearchCV(
-                GaussianNB(),
-                {},
-                n_jobs=-1
-            ),
-            GridSearchCV(
-                RandomForestClassifier(random_state=random_state, n_jobs=-1),
-                {"max_features": [0.3, "sqrt", 1.0], "n_estimators": [100, 300, 500, 700]},
-                n_jobs=-1
-            ),
-            GridSearchCV(
-                AdaBoostClassifier(random_state=random_state),
-                {"learning_rate": [0.8, 1.0, 1.2], "n_estimators": [30, 50, 70]},
-                n_jobs=-1
+                {
+                    "criterion": ["gini", "entropy"],
+                    "max_depth": [3, 5, 7, 9, None],
+                    "max_features": [0.3, "sqrt", None],
+                    "min_samples_split": [2, 3, 4],
+                },
+                n_jobs=-1,
+                scoring="f1"
             ),
             GridSearchCV(
                 self.xgboost,
-                {"eta": [0.2, 0.3, 0.4, 0.5], "max_depth": [2, 4, 6, 8, 10], "lambda": [1, 1.2, 1.5]},
-                n_jobs=-1
+                {
+                    "eta": [0.1, 0.2, 0.3, 0.4, 0.5],
+                    "max_depth": [1, 2, 3, 4, 5, 6],
+                    "lambda": [0.8, 1.0, 1.2, 1.4, 1.6],
+                    "alpha": [0.0, 0.2, 0.4]
+                },
+                n_jobs=-1,
+                scoring="f1"
             ),
         ]
     
