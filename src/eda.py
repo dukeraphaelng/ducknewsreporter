@@ -13,16 +13,6 @@ from non_latent_features import NonLatentFeatures
 from textual_relevance import TextualRelevance
 from preprocess import Preprocessor
 
-def plot_word_cloud(df):
-    # Without stop words
-    word_cloud = WordCloud(width=800, height=800, background_color='white', stopwords=STOPWORDS).generate(" ".join(df['content']))
-
-    plt.figure(figsize=(6,6))
-    plt.imshow(word_cloud)
-    plt.axis('off') 
-    plt.tight_layout()
-    plt.show()
-
 def extract_non_latent(row):
     total_dict = {}
     for k in ['div_NOUN_sum', 'div_NOUN_percent', 'div_VERB_sum', 'div_VERB_percent', 'div_ADJ_sum', 'div_ADJ_percent', 'div_ADV_sum', 'div_ADV_percent', 'div_LEX_sum', 'div_LEX_percent', 'div_CONT_sum', 'div_CONT_percent', 'div_FUNC_sum', 'div_FUNC_percent', 'pron_FPS_sum', 'pron_FPS_percent', 'pron_FPP_sum', 'pron_FPP_percent', 'pron_STP_sum', 'pron_STP_percent', 'quant_NOUN_sum', 'quant_NOUN_percent', 'quant_VERB_sum', 'quant_VERB_percent', 'quant_ADJ_sum', 'quant_ADJ_percent', 'quant_ADV_sum', 'quant_ADV_percent', 'quant_PRON_sum', 'quant_PRON_percent', 'quant_DET_sum', 'quant_DET_percent', 'quant_NUM_sum', 'quant_NUM_percent', 'quant_PUNCT_sum', 'quant_PUNCT_percent', 'quant_SYM_sum', 'quant_SYM_percent', 'quant_PRP_sum', 'quant_PRP_percent', 'quant_PRP$_sum', 'quant_PRP$_percent', 'quant_WDT_sum', 'quant_WDT_percent', 'quant_CD_sum', 'quant_CD_percent', 'quant_VBD_sum', 'quant_VBD_percent', 'quant_STOP_sum', 'quant_STOP_percent', 'quant_LOW_sum', 'quant_LOW_percent', 'quant_UP_sum', 'quant_UP_percent', 'quant_NEG_sum', 'quant_NEG_percent', 'quant_QUOTE_sum', 'quant_NP_sum', 'quant_CHAR_sum', 'quant_WORD_sum', 'quant_SENT_sum', 'quant_SYLL_sum', 'senti_!_sum', 'senti_!_percent', 'senti_?_sum', 'senti_?_percent', 'senti_CAPS_sum', 'senti_CAPS_percent', 'senti_POL_sum', 'senti_SUBJ_sum', 'avg_chars_per_word_sum', 'avg_words_per_sent_sum', 'avg_claus_per_sent_sum', 'avg_puncts_per_sent_sum', 'med_st_ALL_sum', 'med_st_NP_sum', 'read_gunning-fog_sum', 'read_coleman-liau_sum', 'read_dale-chall_sum', 'read_flesch-kincaid_sum', 'read_linsear-write_sum', 'read_spache_sum', 'read_automatic_sum', 'read_flesch_sum']:
@@ -39,6 +29,135 @@ def extract_non_latent(row):
         for k, v in non_latent_dict.items():
             total_dict[key + '_' + k] = v
     return pd.Series(total_dict.values(), total_dict.keys())
+
+def non_latent_cosine_dist_func(columns):
+    def non_latent_cosine_dist(row):
+        predict_vec = np.array([row[col] for col in columns])
+        context_vecs = []
+        # get all vec of context vectors here
+        for type_ in ["ctx1_content", "ctx2_content", "ctx3_content"]:
+            if isinstance(row[type_], str) and len(row[type_]) > 0:
+                context_vec = np.array([row[type_ + col[7:]] for col in columns])
+                context_vecs.append(context_vec)
+
+        val = np.mean([1 - spatial.distance.cosine(predict_vec, context_vec) for context_vec in context_vecs])
+
+        return pd.Series([val], ['non_latent_cosine_dist'])
+    
+    return non_latent_cosine_dist
+
+def apply_textual_relevance(df):
+    pp = Preprocessor()
+
+    for col in ["content", "ctx1_content", "ctx2_content", "ctx3_content"]:
+        df[col + '_token'] = df[col].apply(pp.tokenize_opt)
+
+    tfidf_1_1 = TextualRelevance('tfidf', df.content, ngram_range=(1, 1))
+    tfidf_1_2 = TextualRelevance('tfidf', df.content, ngram_range=(1, 2))
+    word2vec = TextualRelevance('word2vec')
+
+    tf_idf_1_1_cosine_dist = []
+    tf_idf_1_1_word_app = []
+    tf_idf_1_1_matching = []
+
+    tf_idf_1_2_cosine_dist = []
+    tf_idf_1_2_word_app = []
+    tf_idf_1_2_matching = []
+
+    word2vec_cosine_dist = []
+
+    for i in range(len(df)):
+        contents = []
+        for context in [df['ctx1_content_token'].iloc[i], df['ctx2_content_token'].iloc[i], df['ctx3_content_token'].iloc[i]]:
+            if isinstance(context, list):
+                contents.append(context)
+
+        tf_idf_1_1_cosine_dist.append(tfidf_1_1.cosine_dist(df['content_token'].iloc[i], contents))
+        tf_idf_1_1_word_app.append(tfidf_1_1.word_appearance(df['content_token'].iloc[i], contents))
+        tf_idf_1_1_matching.append(tfidf_1_1.matching_score(df['content_token'].iloc[i], contents))
+
+        tf_idf_1_2_cosine_dist.append(tfidf_1_2.cosine_dist(df['content_token'].iloc[i], contents))
+        tf_idf_1_2_word_app.append(tfidf_1_2.word_appearance(df['content_token'].iloc[i], contents))
+        tf_idf_1_2_matching.append(tfidf_1_2.matching_score(df['content_token'].iloc[i], contents))
+        
+        word2vec_cosine_dist.append(word2vec.cosine_dist(df['content_token'].iloc[i], contents))
+
+    df['tf_idf_1_1_cosine_dist'] = tf_idf_1_1_cosine_dist
+    df['tf_idf_1_1_word_app'] = tf_idf_1_1_word_app
+    df['tf_idf_1_1_matching'] = tf_idf_1_1_matching
+
+    df['tf_idf_1_2_cosine_dist'] = tf_idf_1_2_cosine_dist
+    df['tf_idf_1_2_word_app'] = tf_idf_1_2_word_app
+    df['tf_idf_1_2_matching'] = tf_idf_1_2_matching
+
+    df['word2vec_cosine_dist'] = word2vec_cosine_dist
+
+    tf_idf_1_1_cosine_dist = np.array(tf_idf_1_1_cosine_dist)
+    tf_idf_1_1_word_app = np.array(tf_idf_1_1_word_app)
+    tf_idf_1_1_matching = np.array(tf_idf_1_1_matching)
+
+    tf_idf_1_2_cosine_dist = np.array(tf_idf_1_2_cosine_dist)
+    tf_idf_1_2_word_app = np.array(tf_idf_1_2_word_app)
+    tf_idf_1_2_matching = np.array(tf_idf_1_2_matching)
+
+    df['tf_idf_1_1_harmonic_mean'] = 3 / ((1/tf_idf_1_1_cosine_dist) + (1/tf_idf_1_1_word_app) + (1/tf_idf_1_1_matching))
+    df['tf_idf_1_2_harmonic_mean'] = 3 / ((1/tf_idf_1_2_cosine_dist) + (1/tf_idf_1_2_word_app) + (1/tf_idf_1_2_matching))
+    return df
+    
+def jsd(p, q, base=np.e):
+    '''Jenson-Shanon Distance
+    Reference: https://stackoverflow.com/questions/20302636/js-divergence-between-two-discrete-probability-distributions-of-unequal-length
+    '''
+    if len(p) > len(q):
+        p = np.random.choice(p, len(q)) # random.choice make same length to p/q
+    elif len(q) > len(p):
+        q = np.random.choice(q, len(p))
+    p, q = np.asarray(p), np.asarray(q)
+    
+    return jensenshannon(p, q)
+
+def boxplot_feats(df):
+    feats = ['content_' + k for k in ['div_NOUN_sum', 'div_NOUN_percent', 'div_VERB_sum', 'div_VERB_percent', 'div_ADJ_sum', 'div_ADJ_percent', 'div_ADV_sum', 'div_ADV_percent', 'div_LEX_sum', 'div_LEX_percent', 'div_CONT_sum', 'div_CONT_percent', 'div_FUNC_sum', 'div_FUNC_percent', 'pron_FPS_sum', 'pron_FPS_percent', 'pron_FPP_sum', 'pron_FPP_percent', 'pron_STP_sum', 'pron_STP_percent', 'quant_NOUN_sum', 'quant_NOUN_percent', 'quant_VERB_sum', 'quant_VERB_percent', 'quant_ADJ_sum', 'quant_ADJ_percent', 'quant_ADV_sum', 'quant_ADV_percent', 'quant_PRON_sum', 'quant_PRON_percent', 'quant_DET_sum', 'quant_DET_percent', 'quant_NUM_sum', 'quant_NUM_percent', 'quant_PUNCT_sum', 'quant_PUNCT_percent', 'quant_SYM_sum', 'quant_SYM_percent', 'quant_PRP_sum', 'quant_PRP_percent', 'quant_PRP$_sum', 'quant_PRP$_percent', 'quant_WDT_sum', 'quant_WDT_percent', 'quant_CD_sum', 'quant_CD_percent', 'quant_VBD_sum', 'quant_VBD_percent', 'quant_STOP_sum', 'quant_STOP_percent', 'quant_LOW_sum', 'quant_LOW_percent', 'quant_UP_sum', 'quant_UP_percent', 'quant_NEG_sum', 'quant_NEG_percent', 'quant_QUOTE_sum', 'quant_NP_sum', 'quant_CHAR_sum', 'quant_WORD_sum', 'quant_SENT_sum', 'quant_SYLL_sum', 'senti_!_sum', 'senti_!_percent', 'senti_?_sum', 'senti_?_percent', 'senti_CAPS_sum', 'senti_CAPS_percent', 'senti_POL_sum', 'senti_SUBJ_sum', 'avg_chars_per_word_sum', 'avg_words_per_sent_sum', 'avg_claus_per_sent_sum', 'avg_puncts_per_sent_sum', 'med_st_ALL_sum', 'med_st_NP_sum']]
+    read_feats = ['content_' + k for k in ['read_gunning-fog_sum', 'read_coleman-liau_sum', 'read_dale-chall_sum', 'read_flesch-kincaid_sum', 'read_linsear-write_sum', 'read_spache_sum', 'read_automatic_sum', 'read_flesch_sum']]
+    total_feats = feats + read_feats
+
+    new_dict = {}
+    feat_dict = dict(np.floor(np.log10(df[total_feats].mean())))
+    for k, v in feat_dict.items():
+        new_dict[v] = new_dict.get(v, [])
+        new_dict[v].append(k)
+
+    fig, axes = plt.subplots(nrows=2, ncols= 4, figsize=(12, 8))
+    ax = axes.ravel()
+
+    for i, k in enumerate(sorted(new_dict.keys())):
+        ax[i].boxplot(df[new_dict[k]], showfliers=False, vert=False)
+        ax[i].set_title(f'$10^{{{int(k)}}}$')
+        ax[i].set_yticklabels([i[8:] for i in new_dict[k]])
+
+    plt.suptitle('Boxplot of Features by Scale of Powers of 10')
+    fig.tight_layout()
+    plt.show()
+
+def plot_word_count(df, str_type_):
+    # https://stackoverflow.com/questions/16180946/drawing-average-line-in-histogram-matplotlib
+    plt.hist(df)
+    plt.title(f'{str_type_} Word Count Histogram')
+    plt.axvline(df.mean(), color='k', linestyle='dashed', linewidth=1)
+    min_ylim, max_ylim = plt.ylim()
+    plt.text(df.mean()*1.1, max_ylim*0.9, 'Mean: {:.2f}'.format(df.mean()))
+    plt.legend(title='\n'.join(str(df.describe().round(2)).split('\n')[:-1]))
+    plt.show()
+
+def plot_word_cloud(df):
+    # Without stop words
+    word_cloud = WordCloud(width=800, height=800, background_color='white', stopwords=STOPWORDS).generate(" ".join(df['content']))
+
+    plt.figure(figsize=(6,6))
+    plt.imshow(word_cloud)
+    plt.axis('off') 
+    plt.tight_layout()
+    plt.show()
 
 def calculate_p(feats, df_feats, label):
     # Get all the features to feed into the two models
@@ -98,29 +217,6 @@ def plot_p_values(df):
     fig.tight_layout()
     plt.show()
     return sorted_p
-
-def boxplot_feats(df):
-    feats = ['content_' + k for k in ['div_NOUN_sum', 'div_NOUN_percent', 'div_VERB_sum', 'div_VERB_percent', 'div_ADJ_sum', 'div_ADJ_percent', 'div_ADV_sum', 'div_ADV_percent', 'div_LEX_sum', 'div_LEX_percent', 'div_CONT_sum', 'div_CONT_percent', 'div_FUNC_sum', 'div_FUNC_percent', 'pron_FPS_sum', 'pron_FPS_percent', 'pron_FPP_sum', 'pron_FPP_percent', 'pron_STP_sum', 'pron_STP_percent', 'quant_NOUN_sum', 'quant_NOUN_percent', 'quant_VERB_sum', 'quant_VERB_percent', 'quant_ADJ_sum', 'quant_ADJ_percent', 'quant_ADV_sum', 'quant_ADV_percent', 'quant_PRON_sum', 'quant_PRON_percent', 'quant_DET_sum', 'quant_DET_percent', 'quant_NUM_sum', 'quant_NUM_percent', 'quant_PUNCT_sum', 'quant_PUNCT_percent', 'quant_SYM_sum', 'quant_SYM_percent', 'quant_PRP_sum', 'quant_PRP_percent', 'quant_PRP$_sum', 'quant_PRP$_percent', 'quant_WDT_sum', 'quant_WDT_percent', 'quant_CD_sum', 'quant_CD_percent', 'quant_VBD_sum', 'quant_VBD_percent', 'quant_STOP_sum', 'quant_STOP_percent', 'quant_LOW_sum', 'quant_LOW_percent', 'quant_UP_sum', 'quant_UP_percent', 'quant_NEG_sum', 'quant_NEG_percent', 'quant_QUOTE_sum', 'quant_NP_sum', 'quant_CHAR_sum', 'quant_WORD_sum', 'quant_SENT_sum', 'quant_SYLL_sum', 'senti_!_sum', 'senti_!_percent', 'senti_?_sum', 'senti_?_percent', 'senti_CAPS_sum', 'senti_CAPS_percent', 'senti_POL_sum', 'senti_SUBJ_sum', 'avg_chars_per_word_sum', 'avg_words_per_sent_sum', 'avg_claus_per_sent_sum', 'avg_puncts_per_sent_sum', 'med_st_ALL_sum', 'med_st_NP_sum']]
-    read_feats = ['content_' + k for k in ['read_gunning-fog_sum', 'read_coleman-liau_sum', 'read_dale-chall_sum', 'read_flesch-kincaid_sum', 'read_linsear-write_sum', 'read_spache_sum', 'read_automatic_sum', 'read_flesch_sum']]
-    total_feats = feats + read_feats
-
-    new_dict = {}
-    feat_dict = dict(np.floor(np.log10(df[total_feats].mean())))
-    for k, v in feat_dict.items():
-        new_dict[v] = new_dict.get(v, [])
-        new_dict[v].append(k)
-
-    fig, axes = plt.subplots(nrows=2, ncols= 4, figsize=(12, 8))
-    ax = axes.ravel()
-
-    for i, k in enumerate(sorted(new_dict.keys())):
-        ax[i].boxplot(df[new_dict[k]], showfliers=False, vert=False)
-        ax[i].set_title(f'$10^{{{int(k)}}}$')
-        ax[i].set_yticklabels([i[8:] for i in new_dict[k]])
-
-    plt.suptitle('Boxplot of Features by Scale of Powers of 10')
-    fig.tight_layout()
-    plt.show()
 
 def plot_p_values_with_correlation(sorted_p, selected_feats):
     fig, axes = plt.subplots(ncols=2, figsize=(10, 8), sharex=True, sharey=True)
@@ -215,102 +311,6 @@ def plot_corr_heat_map(df, sorted_p):
     plt.show()
     
     return corr_matrx
-
-def non_latent_cosine_dist_func(columns):
-    def non_latent_cosine_dist(row):
-        predict_vec = np.array([row[col] for col in columns])
-        context_vecs = []
-        # get all vec of context vectors here
-        for type_ in ["ctx1_content", "ctx2_content", "ctx3_content"]:
-            if isinstance(row[type_], str) and len(row[type_]) > 0:
-                context_vec = np.array([row[type_ + col[7:]] for col in columns])
-                context_vecs.append(context_vec)
-
-        val = np.mean([1 - spatial.distance.cosine(predict_vec, context_vec) for context_vec in context_vecs])
-
-        return pd.Series([val], ['non_latent_cosine_dist'])
-    
-    return non_latent_cosine_dist
-
-def apply_textual_relevance(df):
-    pp = Preprocessor()
-
-    for col in ["content", "ctx1_content", "ctx2_content", "ctx3_content"]:
-        df[col + '_token'] = df[col].apply(pp.tokenize_opt)
-
-    tfidf_1_1 = TextualRelevance('tfidf', df.content, ngram_range=(1, 1))
-    tfidf_1_2 = TextualRelevance('tfidf', df.content, ngram_range=(1, 2))
-    word2vec = TextualRelevance('word2vec')
-
-    tf_idf_1_1_cosine_dist = []
-    tf_idf_1_1_word_app = []
-    tf_idf_1_1_matching = []
-
-    tf_idf_1_2_cosine_dist = []
-    tf_idf_1_2_word_app = []
-    tf_idf_1_2_matching = []
-
-    word2vec_cosine_dist = []
-
-    for i in range(len(df)):
-        contents = []
-        for context in [df['ctx1_content_token'].iloc[i], df['ctx2_content_token'].iloc[i], df['ctx3_content_token'].iloc[i]]:
-            if isinstance(context, list):
-                contents.append(context)
-
-        tf_idf_1_1_cosine_dist.append(tfidf_1_1.cosine_dist(df['content_token'].iloc[i], contents))
-        tf_idf_1_1_word_app.append(tfidf_1_1.word_appearance(df['content_token'].iloc[i], contents))
-        tf_idf_1_1_matching.append(tfidf_1_1.matching_score(df['content_token'].iloc[i], contents))
-
-        tf_idf_1_2_cosine_dist.append(tfidf_1_2.cosine_dist(df['content_token'].iloc[i], contents))
-        tf_idf_1_2_word_app.append(tfidf_1_2.word_appearance(df['content_token'].iloc[i], contents))
-        tf_idf_1_2_matching.append(tfidf_1_2.matching_score(df['content_token'].iloc[i], contents))
-        
-        word2vec_cosine_dist.append(word2vec.cosine_dist(df['content_token'].iloc[i], contents))
-
-    df['tf_idf_1_1_cosine_dist'] = tf_idf_1_1_cosine_dist
-    df['tf_idf_1_1_word_app'] = tf_idf_1_1_word_app
-    df['tf_idf_1_1_matching'] = tf_idf_1_1_matching
-
-    df['tf_idf_1_2_cosine_dist'] = tf_idf_1_2_cosine_dist
-    df['tf_idf_1_2_word_app'] = tf_idf_1_2_word_app
-    df['tf_idf_1_2_matching'] = tf_idf_1_2_matching
-
-    df['word2vec_cosine_dist'] = word2vec_cosine_dist
-
-    tf_idf_1_1_cosine_dist = np.array(tf_idf_1_1_cosine_dist)
-    tf_idf_1_1_word_app = np.array(tf_idf_1_1_word_app)
-    tf_idf_1_1_matching = np.array(tf_idf_1_1_matching)
-
-    tf_idf_1_2_cosine_dist = np.array(tf_idf_1_2_cosine_dist)
-    tf_idf_1_2_word_app = np.array(tf_idf_1_2_word_app)
-    tf_idf_1_2_matching = np.array(tf_idf_1_2_matching)
-
-    df['tf_idf_1_1_harmonic_mean'] = 3 / ((1/tf_idf_1_1_cosine_dist) + (1/tf_idf_1_1_word_app) + (1/tf_idf_1_1_matching))
-    df['tf_idf_1_2_harmonic_mean'] = 3 / ((1/tf_idf_1_2_cosine_dist) + (1/tf_idf_1_2_word_app) + (1/tf_idf_1_2_matching))
-    return df
-    
-def jsd(p, q, base=np.e):
-    '''Jenson-Shanon Distance
-    Reference: https://stackoverflow.com/questions/20302636/js-divergence-between-two-discrete-probability-distributions-of-unequal-length
-    '''
-    if len(p) > len(q):
-        p = np.random.choice(p, len(q)) # random.choice make same length to p/q
-    elif len(q) > len(p):
-        q = np.random.choice(q, len(p))
-    p, q = np.asarray(p), np.asarray(q)
-    
-    return jensenshannon(p, q)
-
-def plot_word_count(df, str_type_):
-    # https://stackoverflow.com/questions/16180946/drawing-average-line-in-histogram-matplotlib
-    plt.hist(df)
-    plt.title(f'{str_type_} Word Count Histogram')
-    plt.axvline(df.mean(), color='k', linestyle='dashed', linewidth=1)
-    min_ylim, max_ylim = plt.ylim()
-    plt.text(df.mean()*1.1, max_ylim*0.9, 'Mean: {:.2f}'.format(df.mean()))
-    plt.legend(title='\n'.join(str(df.describe().round(2)).split('\n')[:-1]))
-    plt.show()
 
 def plot_method_comparison(df):
     colors = ["red", "green"]
