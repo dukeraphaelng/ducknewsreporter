@@ -14,6 +14,7 @@ import pickle
 from datetime import datetime
 
 import numpy as np
+import tensorflow as tf
 from newspaper import Article
 from transformers import BertTokenizer, TFBertModel
 
@@ -28,6 +29,8 @@ from textual_relevance import TextualRelevance
 bert_tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 bert_model = TFBertModel.from_pretrained("bert-base-uncased")
 
+
+clf_model = tf.keras.models.load_model("data/Horne2017_FakeNewsData/Buzzfeed/tf_model")
 
 def info(msg):
     now = datetime.now()
@@ -120,10 +123,23 @@ features = np.array([
     *non_latent_features
 ]).reshape((1, -1))
 
-# Normalize all features - the pickled normalizer has only been trained on our
-# training data.
-with open("data/Horne2017_FakeNewsData/Buzzfeed/normalizer.pickle", "rb") as f:
-    normalizer: DataNormalizer = pickle.load(f)
-features = normalizer.transform(features)
+# Classification
+info("Classifying...")
+pred_proba = clf_model.predict(features)
+pred = pred_proba[0] >= 0.5
+info("Classifying...done")
 
-print(features)
+if pred:
+    print("""
++---------------------------+
+|                           |
+|   PREDICTION IS... \x1b[1;32mREAL\u001b[0m   |
+|                           |
++---------------------------+""")
+else:
+    print("""
++---------------------------+
+|                           |
+|   PREDICTION IS... \x1b[1;31mFAKE\u001b[0m   |
+|                           |
++---------------------------+""")
