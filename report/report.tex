@@ -25,6 +25,7 @@
 \usepackage{longtable} % tables that span multiple pages
 \usepackage{enumitem} % \begin{enumerate}[label=(\alph*)]
 \usepackage{pgfplots}
+\usepackage{xifthen}% provides \isempty test
 \usepackage[font=small,labelfont=bf]{caption}
 
 \usepackage{subfig}
@@ -43,10 +44,10 @@
 % https://tex.stackexchange.com/questions/9796/how-to-add-todo-notes
 \setlength {\marginparwidth }{2cm}
 \usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
-\newcommandx{\unsure}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
-\newcommandx{\add}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=blue,#1]{#2}}
-\newcommandx{\info}[2][1=]{\todo[linecolor=green,backgroundcolor=green!25,bordercolor=green,#1]{#2}}
-\newcommandx{\improvement}[2][1=]{\todo[linecolor=magenta,backgroundcolor=magenta!25,bordercolor=magenta,#1]{#2}}
+\newcommandx{\todoany}[2][1=]{\todo[inline,#1]{[\sectionlabel{}]~#2}}
+\newcommandx{\todojim}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,inline,#1]{[\sectionlabel{}]~\textbf{Jim}:~#2}}
+\newcommandx{\tododuke}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=blue,inline,#1]{[\sectionlabel{}]~\textbf{Duke}:~#2}}
+\newcommandx{\tododhruv}[2][1=]{\todo[linecolor=green,backgroundcolor=green!25,bordercolor=green,inline,#1]{[\sectionlabel{}]~\textbf{Dhruv}:~#2}}
 
 \hypersetup{
   colorlinks=true,
@@ -78,7 +79,13 @@
 \renewcommand{\headrulewidth}{1pt}
 \renewcommand{\footrulewidth}{0.5pt}
 
-\title{COMP9491: Applied Artificial Intelligence\\\Huge{Project Report}}
+\newcommand{\sectiontitle}{}
+\newcommand{\subsectiontitle}{}
+\newcommand{\sectionlabel}{\ifdefempty{\subsectiontitle}{\sectiontitle}{\sectiontitle/\subsectiontitle}}
+\newcommand{\newsection}[1]{\section{#1}\renewcommand{\sectiontitle}{#1}\renewcommand{\subsectiontitle}{}}
+\newcommand{\newsubsection}[1]{\subsection{#1}\renewcommand{\subsectiontitle}{#1}}
+
+\title{\textbf{Duck News Reporters: Automated fake news detection through contextual similarity comparison}\\\vspace*{12pt}\large{COMP9491: Applied Artificial Intelligence --- Project Report}}
 \author{%
   Dhruv Agrawal\\
   \texttt{z5361800@unsw.edu.au}
@@ -91,18 +98,95 @@
 }
 
 \maketitle
+\thispagestyle{empty}
 
 \listoftodos % DELETE THIS BEFORE SUBMIT
 
-\section{Introduction}
-\thispagestyle{empty}
+\newsection{Introduction}
 
-\todo[inline]{TODO}
+\todoany{Describe the problem domain and aim of study, briefly introduce the developed methods and summarise your experimental findings}
+
+\newsection{Related work}
+
+\tododhruv{Describe the current state-of-the-art or related literature in this problem domain}
+
+\newsection{Methods}
+
+\newsubsection{Feature --- Gathering contextual articles}
+
+\todojim{Write}
+
+\newsubsection{Feature --- Similarity model}
+
+\tododuke{Write}
+
+\newsubsection{Feature --- Non-latent features}
+
+\tododuke{Write}
+
+\newsubsection{Feature --- BERT embeddings}
+
+\tododuke{Write}
+
+\newsubsection{Model --- Machine learning}
+
+\todojim{Write}
+
+\newsubsection{Model --- Neural networks}
+
+\tododhruv{Write}
+
+\newsection{Experimental setup}
+
+\newsubsection{Dataset}
+
+\todojim{write}
+
+\newsubsection{Evaluation metrics}
+
+\todojim{write}
+
+\newsection{Results and discussion}
+
+\todojim{Machine learning}
+
+\tododhruv{Neural nets}
+
+\newsection{Conclusion}
+
+\todoany{Summarise the study and discuss directions for future improvement}
 
 \cleardoublepage
 \pagebreak
 
 \nocite{*}
 \printbibliography
+
+\cleardoublepage
+\pagebreak
+
+\appendix
+
+\newsection{Individual contributions}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{lll}
+    Jim & Dhruv & Duke \\
+    \midrule
+  \end{tabular}
+\end{table}
+
+\subsection{Jim}
+
+\todojim{$\sim$1pg detailing individual contributions}
+
+\subsection{Dhruv}
+
+\tododhruv{$\sim$1pg detailing individual contributions}
+
+\subsection{Duke}
+
+\tododuke{$\sim$1pg detailing individual contributions}
 
 \end{document}
