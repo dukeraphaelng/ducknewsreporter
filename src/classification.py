@@ -1,5 +1,4 @@
 import logging
-import pickle
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -66,20 +65,19 @@ class Data:
     y_train: np.ndarray
     y_valid: np.ndarray
     y_test: np.ndarray
-    # A 80/20 split. Normalizer trained on the 80 split and applied to the test
-    # set only
-    X_train_valid: np.ndarray
-    X_test2: np.ndarray
-    y_train_valid: np.ndarray
-    y_test2: np.ndarray
+    # A 80/20 split.
+    X_train_valid: Optional[np.ndarray]
+    y_train_valid: Optional[np.ndarray]
 
     @property
     def train_valid_test(self):
+        if self.X_train_valid is None:
+            raise Exception("Did not load train_valid set")
         return (self.X_train, self.y_train, self.X_valid, self.y_valid, self.X_test, self.y_test)
     
     @property
     def train_test(self):
-        return (self.X_train_valid, self.y_train_valid, self.X_test2, self.y_test2)
+        return (self.X_train_valid, self.y_train_valid, self.X_test, self.y_test)
 
 
 class Pipeline:
@@ -132,8 +130,15 @@ class Pipeline:
     def load_dataset_from_file(self, dir = "data/Horne2017_FakeNewsData/Buzzfeed"):
         base = Path(dir)
         sets = {}
-        for name in ["train", "valid", "test", "train_valid", "test2"]:
-            df = pd.read_csv(base.joinpath(f"features_{name}.csv"))
+        for name in ["train", "valid", "test", "train_valid"]:
+            path = base.joinpath(f"features_{name}.csv")
+            if not path.exists():
+                if name is "train_valid":
+                    # We can skip supporting this dataset
+                    continue
+                else:
+                    raise Exception(f"Could not fine file {path}")
+            df = pd.read_csv()
             y = df["label"].to_numpy()
             labels_to_drop = ["label"]
             if not self.similarity:
@@ -148,9 +153,8 @@ class Pipeline:
         X_train, y_train = sets["train"]
         X_valid, y_valid = sets["valid"]
         X_test, y_test = sets["test"]
-        X_train_valid, y_train_valid = sets["train_valid"]
-        X_test2, y_test = sets["test2"]
-        return Data(X_train, X_valid, X_test, y_train, y_valid, y_test, X_train_valid, X_test2, y_train_valid, y_test)
+        X_train_valid, y_train_valid = sets.get("train_valid", (None, None))
+        return Data(X_train, X_valid, X_test, y_train, y_valid, y_test, X_train_valid, y_train_valid)
 
     def load_dataset(self, random_state=42, quiet=False, save_dir: Optional[str]=None):
         """Performs the following work in order:
@@ -236,39 +240,42 @@ class Pipeline:
             feature_labels.extend(non_latent_keys)
             X = np.hstack((X, df[non_latent_keys].to_numpy()))
         y = df["label"].apply(int).to_numpy()
-
+        
         # Datasets: 60, 20, 20 split on train, valid, test
         X_train_valid, X_test, y_train_valid, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state, stratify=y)
         X_train, X_valid, y_train, y_valid = train_test_split(X_train_valid, y_train_valid, test_size=0.25, random_state=random_state, stratify=y_train_valid)
 
-        # Scale features
-        needs_standard_scaler = []
-        needs_min_max_scaler = []
-        for i, label in enumerate(feature_labels):
-            if label.endswith("_sum"):
-                needs_standard_scaler.append(i)
-            else:
-                needs_min_max_scaler.append(i)
+        # ## We tried scaling the features but it gave us extremely poor results.
+        # ## We could not figure out if this was a bug or we needed to investigate
+        # ## what our scaler was doing more carefully.
+        # ##
+        # # Scale features
+        # needs_standard_scaler = []
+        # needs_min_max_scaler = []
+        # for i, label in enumerate(feature_labels):
+        #     if label.startswith("bert_"):
+        #         continue
+        #     elif label.endswith("_sum") or label.endswith("_percent"):
+        #         needs_standard_scaler.append(i)
+        #     else:
+        #         needs_min_max_scaler.append(i)
         
-        normalizer = DataNormalizer(needs_standard_scaler, needs_min_max_scaler)
-        X_train = normalizer.fit_transform(X_train)
-        X_valid = normalizer.transform(X_valid)
-        X_test1 = normalizer.transform(X_test)
+        # normalizer = DataNormalizer(needs_standard_scaler, needs_min_max_scaler)
+        # X_train = normalizer.fit_transform(X_train)
+        # X_valid = normalizer.transform(X_valid)
+        # X_test1 = normalizer.transform(X_test)
 
-        normalizer2 = DataNormalizer(needs_standard_scaler, needs_min_max_scaler)
-        X_train_valid = normalizer2.fit_transform(X_train_valid)
-        X_test2 = normalizer2.transform(X_test)
+        # normalizer2 = DataNormalizer(needs_standard_scaler, needs_min_max_scaler)
+        # X_train_valid = normalizer2.fit_transform(X_train_valid)
+        # X_test2 = normalizer2.transform(X_test)
 
         if save_dir:
             base = Path(save_dir)
             labels = ["label", *feature_labels]
-            for (name, XX, yy) in [("train", X_train, y_train), ("valid", X_valid, y_valid), ("test", X_test1, y_test), ("train_valid", X_train_valid, y_train_valid), ("test2", X_test2, y_test)]:
+            for (name, XX, yy) in [("train", X_train, y_train), ("valid", X_valid, y_valid), ("test", X_test, y_test), ("train_valid", X_train_valid, y_train_valid)]:
                 df_out = pd.DataFrame(np.hstack((yy.reshape((-1, 1)), XX)), columns=labels)
                 df_out.to_csv(base.joinpath(f"features_{name}.csv"), index=False)
-            with open(base.joinpath("scaler.pickle"), "wb") as f:
-                pickle.dump(normalizer, f)
-
-        return Data(X_train, X_valid, X_test1, y_train, y_valid, y_test, X_train_valid, X_test2, y_train_valid, y_test)
+        return Data(X_train, X_valid, X_test, y_train, y_valid, y_test, X_train_valid, y_train_valid, y_test)
 
 
 class MachineLearningClassifier:
@@ -354,4 +361,4 @@ class MachineLearningClassifier:
 
 if __name__ == "__main__":
     pipe = Pipeline()
-    print(pipe.load_dataset())
+    print(pipe.load_dataset(save_dir="."))
