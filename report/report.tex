@@ -175,6 +175,18 @@
 
 \newsection{Methods}
 
+\begin{minipage}{\textwidth}
+  \begin{wrapfigure}{r}{0.65\textwidth}
+    \vspace*{-20pt}
+    \centering
+    \includegraphics[width=0.6\textwidth]{img/pipeline.png}
+    \caption{Our classification pipeline.}
+    \label{pipeline}
+  \end{wrapfigure}
+
+  Figure~\ref{pipeline} shows our mostly linear classification pipeline. After preprocessing and tokenization, we extract contextual articles which are fed into a similarity model to form our first feature. Additionally, non-latent features from raw text and BERT embeddings form the rest of our features. The concatenation of all the features are fed into our classification models which infers a binary classification label.
+\end{minipage}
+
 \newsubsection{Preprocessing and tokenization}
 
 \todojim{Write}
