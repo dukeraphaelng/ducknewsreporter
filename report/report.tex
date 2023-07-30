@@ -189,7 +189,47 @@
 
 \newsubsection{Preprocessing and tokenization}
 
-\todojim{Write}
+Before extracting any features, we will preprocess our input and convert the long form text into tokens. We perform the following preprocessing methods in order:
+
+\begin{quote}
+  \textbf{Remove non-ascii:}\quad Our input articles contained unnecessary unicode tokens such as unicode double quotation marks. These can be removed safely since they do not add any extra semantics to the input articles and may confuse feature extraction.
+
+  \textbf{Convert to lowercase:}\quad In our research, we converted all text to lowercase. However upon further analysis, converting all text to lowercase hid acronyms such as ``US'' which could have affected the main themes of the text. Further, all proper nouns such as names and places were also hidden. We will discuss this limitation in Section~\ref{limitation:preprocessing}.
+
+  \textbf{Lemmatization:}\quad We used the \verb|nltk|~\cite{nltk} libaray to reduce words down to their lemma in the hopes of reducing the complexity within our text which may benefit feature extraction. This looks up the work in the WordNet corpus to get the lemma. Later in the research, we realised that this hypothesis may have not been accurate.
+
+  Firstly the \verb|nltk| library we were using does not automatically detect the part of speech and will by default, only lemmatize nouns. While it is arguably better for us to maintain the tense of nouns, we are technically not lemmatizing fully. Secondly, from more research, lemmatization may not be ideal for BERT embeddings since it removes some semantics that could be learnt by the BERT model. We will discuss these limitations further in Section~\ref{limitation:preprocessing}.
+
+  \textbf{Remove stopwords:}\quad Stopwords were removed from the text in order to reduce complexity.
+\end{quote}
+
+Apart from the above methods, we also tested removing punctuation. However, this was not used in the end since we added non-latent features to measure punctuation counts and also to maintain semantics for BERT.
+
+After preprocessing, tokens are then generated based on any whitespace and punctuation in the remaining text. Table~\ref{preprocessing} shows samples of tokenized input articles.
+
+\begin{table}
+  \begin{center}
+    \makebox[0pt]{\begin{minipage}{\paperwidth}
+        \centering
+        \subfloat{
+          \begin{tabular}{cp{8cm}p{6cm}}
+            \toprule
+            ID & Article extract & Tokens\\
+            \midrule
+            118\_Real & \small{\articlecontent{118real}}
+            & \small{['fbi', 'director', 'james', 'comey', 'said', 'sunday', 'bureau', 'change', 'conclusion', 'made', 'july', 'examined', 'newly', 'revealed', 'email', 'related', 'hillary', 'clinton', 'probe', '.', '"', 'based', 'review', ',', 'changed', 'conclusion', 'expressed', 'july', 'respect', 'secretary', 'clinton',\ldots]}\\
+            \midrule
+            15\_Fake & \small{\articlecontent{15fake}}
+            & \small{['hearing', '200', 'marines', 'left', 'stranded', 'returning', 'home', 'operation', 'desert', 'storm', 'back', '1991', ',', 'donald', 'j', '.', 'trump', 'came', 'aid', 'marines', 'sending', 'one', 'plane', 'camp', 'lejuene', ',', 'north', 'carolina', 'transport', 'back', 'home', 'family', 'miami',\ldots]}\\
+            \bottomrule
+          \end{tabular}
+        }
+        \hfill
+      \end{minipage}}
+  \end{center}
+  \caption{Examples of preprocessing and tokenization extraction on items in dataset.}
+  \label{preprocessing}
+\end{table}
 
 \newsubsection{Feature --- Similarity model}
 
@@ -212,10 +252,10 @@ We will discuss the possibility of extracting better summaries using a more robu
     \toprule
     ID & Article extract & Summary\\
     \midrule
-    \verb|118_Real| & \articlecontent{118real}
+    118\_Real & \small{\articlecontent{118real}}
     & email review fbi clinton said july comey news new wa\\
     \midrule
-    \verb|15_fake| & \articlecontent{15fake}
+    15\_Fake & \small{\articlecontent{15fake}}
     & home marines trump wa stickney way north plane family\\
     \bottomrule
   \end{tabular}
@@ -297,6 +337,11 @@ After gathering three URL links for each context article, we use the Python \ver
 \todoany{Convert list of limitations to subsubsections with discussion.}
 
 \begin{itemize}
+  \item Preprocessing and tokenization was a bit funny:
+        \begin{enumerate}
+          \item Converting everything to lowercase destroyed acronyms such as ``US''
+          \item \verb|nltk| lemmatizer required manually specifying the part of speech to work. We could have used a different library that extracted the POS automatically. Alternatively we could have investigated not lemmatizing at all to maintain proper structure for non-latent features and BERT embeddings.\label{limitation:preprocessing}
+        \end{enumerate}
   \item Summary extraction didn't produce perfect results~\label{limitation:summary-extraction}
   \item Article scraping sometimes returned no results even after manually figuring out why~\label{limitation:article-scraping}
   \item Models trained on only US news, may be a problem
