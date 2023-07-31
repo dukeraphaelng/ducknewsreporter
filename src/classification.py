@@ -133,12 +133,12 @@ class Pipeline:
         for name in ["train", "valid", "test", "train_valid"]:
             path = base.joinpath(f"features_{name}.csv")
             if not path.exists():
-                if name is "train_valid":
+                if name == "train_valid":
                     # We can skip supporting this dataset
                     continue
                 else:
-                    raise Exception(f"Could not fine file {path}")
-            df = pd.read_csv()
+                    raise Exception(f"Could not find file {path}")
+            df = pd.read_csv(path)
             y = df["label"].to_numpy()
             labels_to_drop = ["label"]
             if not self.similarity:
@@ -275,7 +275,7 @@ class Pipeline:
             for (name, XX, yy) in [("train", X_train, y_train), ("valid", X_valid, y_valid), ("test", X_test, y_test), ("train_valid", X_train_valid, y_train_valid)]:
                 df_out = pd.DataFrame(np.hstack((yy.reshape((-1, 1)), XX)), columns=labels)
                 df_out.to_csv(base.joinpath(f"features_{name}.csv"), index=False)
-        return Data(X_train, X_valid, X_test, y_train, y_valid, y_test, X_train_valid, y_train_valid, y_test)
+        return Data(X_train, X_valid, X_test, y_train, y_valid, y_test, X_train_valid, y_train_valid)
 
 
 class MachineLearningClassifier:
