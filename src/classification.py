@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Literal, Optional
 
 import numpy as np
 import pandas as pd
@@ -81,46 +81,74 @@ class Data:
 
 
 class Pipeline:
-    _DIVERSITY_KEYS = ["div_FUNC_sum", "div_LEX_percent", "div_VERB_sum", "div_FUNC_percent", "div_CONT_percent", "div_ADV_percent", "div_NOUN_percent", "div_VERB_percent", "div_ADJ_percent"]
-    _PRONOUN_KEYS = ["pron_FPP_sum", "pron_FPS_sum"]
-    _QUANTITY_KEYS = ["quant_PRP$_sum", "quant_PUNCT_percent", "quant_PUNCT_sum", "quant_NEG_sum", "quant_UP_sum", "quant_UP_percent", "quant_VBD_percent", "quant_VBD_sum", "quant_NUM_sum", "quant_WDT_sum", "quant_QUOTE_sum", "quant_NEG_percent"]
-    _SENTIMENT_KEYS = ["senti_!_percent", "senti_CAPS_sum", "senti_?_sum"]
-    _AVERAGE_KEYS = ["avg_puncts_per_sent_sum"]
+    _DIVERSITY_KEYS = {
+        "all": ["div_NOUN_sum", "div_NOUN_percent", "div_VERB_sum", "div_VERB_percent", "div_ADJ_sum", "div_ADJ_percent", "div_ADV_sum", "div_ADV_percent", "div_LEX_sum", "div_LEX_percent", "div_CONT_sum", "div_CONT_percent", "div_FUNC_sum", "div_FUNC_percent"],
+        "selected": ["div_FUNC_sum", "div_LEX_percent", "div_VERB_sum", "div_FUNC_percent", "div_CONT_percent", "div_ADV_percent", "div_NOUN_percent", "div_VERB_percent", "div_ADJ_percent"],
+    }
+    _PRONOUN_KEYS = {
+        "all": ["pron_FPS_sum", "pron_FPS_percent", "pron_FPP_sum", "pron_FPP_percent", "pron_STP_sum", "pron_STP_percent"],
+        "selected": ["pron_FPP_sum", "pron_FPS_sum"],
+    }
+    _QUANTITY_KEYS = {
+        "all": ["quant_NOUN_sum", "quant_NOUN_percent", "quant_VERB_sum", "quant_VERB_percent", "quant_ADJ_sum", "quant_ADJ_percent", "quant_ADV_sum", "quant_ADV_percent", "quant_PRON_sum", "quant_PRON_percent", "quant_DET_sum", "quant_DET_percent", "quant_NUM_sum", "quant_NUM_percent", "quant_PUNCT_sum", "quant_PUNCT_percent", "quant_SYM_sum", "quant_SYM_percent", "quant_PRP_sum", "quant_PRP_percent", "quant_PRP$_sum", "quant_PRP$_percent", "quant_WDT_sum", "quant_WDT_percent", "quant_CD_sum", "quant_CD_percent", "quant_VBD_sum", "quant_VBD_percent", "quant_STOP_sum", "quant_STOP_percent", "quant_LOW_sum", "quant_LOW_percent", "quant_UP_sum", "quant_UP_percent", "quant_NEG_sum", "quant_NEG_percent", "quant_QUOTE_sum", "quant_NP_sum", "quant_CHAR_sum", "quant_WORD_sum", "quant_SENT_sum", "quant_SYLL_sum"],
+        "selected": ["quant_PRP$_sum", "quant_PUNCT_percent", "quant_PUNCT_sum", "quant_NEG_sum", "quant_UP_sum", "quant_UP_percent", "quant_VBD_percent", "quant_VBD_sum", "quant_NUM_sum", "quant_WDT_sum", "quant_QUOTE_sum", "quant_NEG_percent"],
+    }
+    _SENTIMENT_KEYS = {
+        "all": ["senti_!_sum", "senti_!_percent", "senti_?_sum", "senti_?_percent", "senti_CAPS_sum", "senti_CAPS_percent", "senti_POL_sum", "senti_SUBJ_sum"],
+        "selected": ["senti_!_percent", "senti_CAPS_sum", "senti_?_sum"],
+    }
+    _AVERAGE_KEYS = {
+        "all": ["avg_chars_per_word_sum", "avg_words_per_sent_sum", "avg_claus_per_sent_sum", "avg_puncts_per_sent_sum"],
+        "selected": ["avg_puncts_per_sent_sum"],
+    }
+    _MEDIAN_SYNTAX_TREE_KEYS = {
+        "all": ["med_st_ALL_sum", "med_st_NP_sum"],
+        "selected": [],
+    }
+    _READABILITY_KEYS = {
+        "all": ["read_gunning-fog_sum", "read_coleman-liau_sum", "read_dale-chall_sum", "read_flesch-kincaid_sum", "read_linsear-write_sum", "read_spache_sum", "read_automatic_sum", "read_flesch_sum"],
+        "selected": [],
+    }
 
     @dataclass
     class NonLatentConfig:
-        diversity: bool = True
-        pronoun: bool = True
-        quantity: bool = True
-        sentiment: bool = True
-        average: bool = True
+        diversity: Optional[Literal["all", "selected"]] = "selected"
+        pronoun: Optional[Literal["all", "selected"]] = "selected"
+        quantity: Optional[Literal["all", "selected"]] = "selected"
+        sentiment: Optional[Literal["all", "selected"]] = "selected"
+        average: Optional[Literal["all", "selected"]] = "selected"
+        median_syntax_tree: Optional[Literal["all", "selected"]] = "selected"
+        readability: Optional[Literal["all", "selected"]] = "selected"
+
+        @property
+        def __feature_keys(self):
+            return [
+                (self.diversity, Pipeline._DIVERSITY_KEYS),
+                (self.pronoun, Pipeline._PRONOUN_KEYS),
+                (self.quantity, Pipeline._QUANTITY_KEYS),
+                (self.sentiment, Pipeline._SENTIMENT_KEYS),
+                (self.average, Pipeline._AVERAGE_KEYS),
+                (self.median_syntax_tree, Pipeline._MEDIAN_SYNTAX_TREE_KEYS),
+                (self.readability, Pipeline._READABILITY_KEYS),
+            ]
+
+        def new_all():
+            return Pipeline.NonLatentConfig("all", "all", "all", "all", "all", "all", "all")
 
         def build_keys(self):
             keys = []
-            if self.diversity:
-                keys.extend(Pipeline._DIVERSITY_KEYS)
-            if self.pronoun:
-                keys.extend(Pipeline._PRONOUN_KEYS)
-            if self.quantity:
-                keys.extend(Pipeline._QUANTITY_KEYS)
-            if self.sentiment:
-                keys.extend(Pipeline._SENTIMENT_KEYS)
-            if self.average:
-                keys.extend(Pipeline._AVERAGE_KEYS)
+            for feature, feature_keys in self.__feature_keys:
+                if feature:
+                    keys.extend(feature_keys[feature])
             return keys
 
         def build_drop_keys(self):
             keys = []
-            if not self.diversity:
-                keys.extend(Pipeline._DIVERSITY_KEYS)
-            if not self.pronoun:
-                keys.extend(Pipeline._PRONOUN_KEYS)
-            if not self.quantity:
-                keys.extend(Pipeline._QUANTITY_KEYS)
-            if not self.sentiment:
-                keys.extend(Pipeline._SENTIMENT_KEYS)
-            if not self.average:
-                keys.extend(Pipeline._AVERAGE_KEYS)
+            for feature, feature_keys in self.__feature_keys:
+                if not feature:
+                    keys.extend(feature_keys["all"])
+                elif feature == "selected":
+                    keys.extend(set(feature_keys["all"]).difference(feature_keys["selected"]))
             return keys
 
     def __init__(self, similarity=True, non_latent: Optional[NonLatentConfig]=NonLatentConfig()):
@@ -147,8 +175,8 @@ class Pipeline:
                 labels_to_drop.extend(self.non_latent.build_drop_keys())
             else:
                 # Delete all keys
-                labels_to_drop.extend(Pipeline.NonLatentConfig().build_keys())
-            X = df.drop(labels_to_drop, axis=1).to_numpy()
+                labels_to_drop.extend(Pipeline.NonLatentConfig.new_all().build_keys())
+            X = df.drop(labels_to_drop, axis=1, errors="ignore").to_numpy()
             sets[name] = (X, y)
         X_train, y_train = sets["train"]
         X_valid, y_valid = sets["valid"]
