@@ -95,6 +95,11 @@
 	expressed in July with respect to Secretary Clinton'' Comey wrote in a
 	letter to 16 members of Congress. [...]
 	}{}%
+  \ifthenelse{\equal{#1}{1fake}}{Hillary in hot water over her email server,
+  again. Sacramento, CA — Democratic nominee Hillary Clinton is in hot water
+  again after nearly 5 million uncounted California electronic ballots were
+  found on her email server by the F.B.I. The majority of those ballots cast
+  were by Bernie Sanders supporters. [...] }{}%
   \ifthenelse{\equal{#1}{128real}}{[...]I have a prediction. I know exactly what
   November 9 will bring. Another day of God’s perfect sovereignty.
 
@@ -145,6 +150,10 @@
 	releasing a brand new album aimed at spreading awareness about ``how awful
 	Donald Trump is''. [...]
 	}{}%
+}
+\newcommand{\articletitle}[1]{%
+	\ifthenelse{\equal{#1}{118real}}{FBI Completes Review of Newly Revealed Hillary Clinton Emails Finds No Evidence of Criminality}{}%
+  \ifthenelse{\equal{#1}{1fake}}{5 Million Uncounted Sanders Ballots Found On Clinton's Email Server}{}%
 }
 % \end{noindent}
 
@@ -320,11 +329,47 @@ After gathering three URL links for each context article, we use the Python \ver
 
 \newsubsection{Dataset}
 
-\todojim{write}
+For our research, we use the \verb|FakeNewsData| dataset collated by Horne and Adali in~\cite{horne2017} on research regarding fake news in the 2016 presidential elections. This dataset contains two subsets, \emph{``Buzzfeed Political News''}, and \emph{``Random Political News''}. We make use of the \emph{Buzzfeed} subset since this contains long form text articles that are binary categorized in with Fake and Real labels. The \emph{Random} subset contains an extra label, Satire, which is out of scope for our research.
+
+The original dataset was collated by Craig Silverman (BuzzFeed News Editor) in an article~\cite{dataset-buzzfeed} analyzing fake news. The analysis concentrates on the Facebook engagement on real and fake news articles shared to the social media website. Various keywords related to events during the election were searched and articles with highest engagement were collected. A ground truth was assigned by manual analysis using a list of known fake and hyperpartisan news sites. A details description of their process can be found in their article.
+
+Following BuzzFeed's analysis, Horne extracted the content and title from the articles and formed the dataset. In total, there were 53 real and 48 fake articles. Notable events during the election such as Donald Trump's campaign and various Hillary Clinton scandals and rumors were features in the articles.
+
+After extending this dataset with our novel context article scraping and similarity methods, we used a 60/20/20 train/validation/test set. This was stratified and randomized to ensure the best results. An example of items in our dataset can be found in Table~\ref{article-samples}.
+
+\begin{table}
+  \begin{center}
+    \makebox[0pt]{\begin{minipage}{\paperwidth}
+        \centering
+        \subfloat{
+          \begin{tabular}{p{8cm}p{8cm}}
+            \toprule
+            \textbf{118\_Real} & \textbf{1\_Fake}\\
+            \midrule
+            \emph{\articletitle{118real}} & \emph{\articletitle{1fake}}\\
+            \midrule
+            \small{\articlecontent{118real}} & \small{\articlecontent{1fake}}\\
+            \bottomrule
+          \end{tabular}
+        }
+        \hfill
+      \end{minipage}}
+  \end{center}
+  \caption{A sample of one fake and real article in our dataset. The article ID, title and content are shown in the rows. Both articles are regarding a scandal with Hillary Clinton using a private server to store emails. The fake article reports on an event that never happens whereas the real article reports the true event -- that Clinton was exonerated from criminality.}
+  \label{article-samples}
+\end{table}
 
 \newsubsection{Evaluation metrics}
 
-\todojim{write}
+To evaluate our classification models, we will use accuracy and F1 score. These metrics are commonly used for binary classification problems as well as in the misinformation detection domain.
+
+Accuracy is measured as the proportion of the total number of correctly classified samples over the total count of samples:
+$$\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}$$
+Our dataset is quite balanced so this will be a good general first step measure.
+
+On the other hand, the F1 score is generally used on imbalanced datasets by looking at both precision and recall:
+$$F_1 = 2\,\frac{\text{precision}\times\text{recall}}{\text{precision}+\text{recall}}$$
+Whilst our dataset is not imbalanced, we will still output this result for comparative purposes.
 
 \newsection{Results and discussion}
 
@@ -349,6 +394,7 @@ After gathering three URL links for each context article, we use the Python \ver
   \item Summary extraction didn't produce perfect results~\label{limitation:summary-extraction}
   \item Article scraping sometimes returned no results even after manually figuring out why~\label{limitation:article-scraping}
   \item Models trained on only US news, may be a problem
+  \item Dataset is small and only contains articles related to political events surrounding the 2016 US election.
 \end{itemize}
 
 \cleardoublepage
