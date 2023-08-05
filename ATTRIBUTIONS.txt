@@ -1,0 +1,1001 @@
+Attributions
+------------
+
+This software uses Open Source components in order to assist the developers to
+concentrate on more important software aspects. This file contains the licenses
+and link to where each project can be found.
+
+Our dataset
+-----------
+
+We attribute the provider of our `Horne2017_FakeNewsData dataset`. Their
+research paper is the below and can be found on arXiv at
+https://arxiv.org/abs/1703.09398:
+
+Horne, B. and Adali, S., 2017, May. This just in: Fake news packs a lot in
+title, uses simpler, repetitive content in text body, more similar to satire
+than real news. In Proceedings of the international AAAI conference on web and
+social media (Vol. 11, No. 1, pp. 759-766).
+
+The dataset is from the above paper and can be found at
+https://github.com/BenjaminDHorne/fakenewsdata1.
+
+Software
+--------
+
+The below table contains all the Python packages that are used.
+
+Jinja2
+3.1.2
+BSD License
+Armin Ronacher
+https://palletsprojects.com/p/jinja/
+A very fast and expressive template engine.
+
+Markdown
+3.4.3
+BSD License
+Manfred Stienstra, Yuri Takhteyev
+https://Python-Markdown.github.io/
+Python implementation of John Gruber's Markdown.
+
+MarkupSafe
+2.1.3
+BSD License
+UNKNOWN
+https://palletsprojects.com/p/markupsafe/
+Safely add untrusted strings to HTML/XML markup.
+
+Pillow
+10.0.0
+Historical Permission Notice and Disclaimer (HPND)
+Jeffrey A. Clark (Alex)
+https://python-pillow.org
+Python Imaging Library (Fork)
+
+PyYAML
+6.0
+MIT License
+Kirill Simonov
+https://pyyaml.org/
+YAML parser and emitter for Python
+
+Pygments
+2.15.1
+BSD License
+Georg Brandl <georg@python.org>
+https://pygments.org
+Pygments is a syntax highlighting package written in Python.
+
+Werkzeug
+2.3.6
+BSD License
+UNKNOWN
+UNKNOWN
+The comprehensive WSGI web application library.
+
+absl-py
+1.4.0
+Apache Software License
+The Abseil Authors
+https://github.com/abseil/abseil-py
+Abseil Python Common Libraries, see https://github.com/abseil/abseil-py.
+
+anyascii
+0.3.2
+ISC License (ISCL)
+Hunter WB <hunter@hunterwb.com>
+https://github.com/anyascii/anyascii
+Unicode to ASCII transliteration
+
+asttokens
+2.2.1
+Apache 2.0
+Dmitry Sagalovskiy, Grist Labs
+https://github.com/gristlabs/asttokens
+Annotate AST trees with source code positions
+
+astunparse
+1.6.3
+BSD License
+UNKNOWN
+https://github.com/simonpercivall/astunparse
+An AST unparser for Python
+
+backcall
+0.2.0
+BSD License
+Thomas Kluyver
+https://github.com/takluyver/backcall
+Specifications for callback functions passed in to an API
+
+beautifulsoup4
+4.12.2
+MIT License
+Leonard Richardson <leonardr@segfault.org>
+https://www.crummy.com/software/BeautifulSoup/bs4/
+Screen-scraping library
+
+blis
+0.7.10
+BSD License
+Matthew Honnibal
+https://github.com/explosion/cython-blis
+The Blis BLAS-like linear algebra library, as a self-contained C-extension.
+
+cachetools
+5.3.1
+MIT License
+Thomas Kemmer
+https://github.com/tkem/cachetools/
+Extensible memoizing collections and decorators
+
+catalogue
+2.0.9
+MIT License
+Explosion
+https://github.com/explosion/catalogue
+Super lightweight function registries for your library
+
+certifi
+2023.5.7
+Mozilla Public License 2.0 (MPL 2.0)
+Kenneth Reitz
+https://github.com/certifi/python-certifi
+Python package for providing Mozilla's CA Bundle.
+
+charset-normalizer
+3.1.0
+MIT License
+Ahmed TAHRI
+https://github.com/Ousret/charset_normalizer
+The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet.
+
+click
+8.1.3
+BSD License
+Armin Ronacher
+https://palletsprojects.com/p/click/
+Composable command line interface toolkit
+
+cmudict
+1.0.13
+GNU General Public License v3 or later (GPLv3+)
+David L. Day
+https://github.com/prosegrinder/python-cmudict
+A versioned python wrapper package for The CMU Pronouncing Dictionary data files.
+
+comm
+0.1.4
+BSD License
+Jupyter contributors
+https://github.com/ipython/comm
+Jupyter Python Comm implementation, for usage in ipykernel, xeus-python etc.
+
+confection
+0.1.1
+MIT License
+Explosion
+https://github.com/explosion/confection
+The sweetest config system for Python
+
+contourpy
+1.1.0
+BSD License
+Ian Thomas <ianthomas23@gmail.com>
+https://github.com/contourpy/contourpy
+Python library for calculating contours of 2D quadrilateral grids
+
+contractions
+0.1.73
+MIT
+Pascal van Kooten
+https://github.com/kootenpv/contractions
+Fixes contractions such as `you're` to you `are`
+
+cssselect
+1.2.0
+BSD License
+Ian Bicking
+https://github.com/scrapy/cssselect
+cssselect parses CSS3 Selectors and translates them to XPath 1.0
+
+cycler
+0.11.0
+BSD License
+Thomas A Caswell
+https://github.com/matplotlib/cycler
+Composable style cycles
+
+cymem
+2.0.7
+MIT License
+Matthew Honnibal
+https://github.com/explosion/cymem
+Manage calls to calloc/free through Cython
+
+debugpy
+1.6.7
+Eclipse Public License 2.0 (EPL-2.0); MIT License
+Microsoft Corporation
+https://aka.ms/debugpy
+An implementation of the Debug Adapter Protocol for Python
+
+decorator
+5.1.1
+BSD License
+Michele Simionato
+https://github.com/micheles/decorator
+Decorators for Humans
+
+en-core-web-sm
+3.6.0
+MIT
+Explosion
+https://explosion.ai
+English pipeline optimized for CPU. Components: tok2vec, tagger, parser, senter, ner, attribute_ruler, lemmatizer.
+
+executing
+1.2.0
+MIT License
+Alex Hall
+https://github.com/alexmojaki/executing
+Get the currently executing AST node of a frame, and other information
+
+feedfinder2
+0.0.4
+MIT License
+Dan Foreman-Mackey
+https://github.com/dfm/feedfinder2
+Find the feed URLs for a website.
+
+feedparser
+6.0.10
+BSD License
+Kurt McKee
+https://github.com/kurtmckee/feedparser
+Universal feed parser, handles RSS 0.9x, RSS 1.0, RSS 2.0, CDF, Atom 0.3, and Atom 1.0 feeds
+
+filelock
+3.12.2
+The Unlicense (Unlicense)
+UNKNOWN
+https://github.com/tox-dev/py-filelock
+A platform independent file lock.
+
+flatbuffers
+23.5.26
+Apache Software License
+Derek Bailey
+https://google.github.io/flatbuffers/
+The FlatBuffers serialization format for Python
+
+fonttools
+4.41.0
+MIT License
+Just van Rossum
+http://github.com/fonttools/fonttools
+Tools to manipulate font files
+
+fsspec
+2023.6.0
+BSD License
+UNKNOWN
+http://github.com/fsspec/filesystem_spec
+File-system specification
+
+gast
+0.4.0
+BSD License
+serge-sans-paille
+https://github.com/serge-sans-paille/gast/
+Python AST that abstracts the underlying Python version
+
+gensim
+4.3.1
+LGPL-2.1-only
+Radim Rehurek
+http://radimrehurek.com/gensim
+Python framework for fast Vector Space Modelling
+
+google-auth
+2.22.0
+Apache Software License
+Google Cloud Platform
+https://github.com/googleapis/google-auth-library-python
+Google Authentication Library
+
+google-auth-oauthlib
+1.0.0
+Apache Software License
+Google Cloud Platform
+https://github.com/GoogleCloudPlatform/google-auth-library-python-oauthlib
+Google Authentication Library
+
+google-pasta
+0.2.0
+Apache Software License
+Nick Smith
+https://github.com/google/pasta
+pasta is an AST-based Python refactoring library
+
+grpcio
+1.56.0
+Apache Software License
+The gRPC Authors
+https://grpc.io
+HTTP/2-based RPC framework
+
+h5py
+3.9.0
+BSD License
+Andrew Collette <andrew.collette@gmail.com>
+https://www.h5py.org/
+Read and write HDF5 files from Python
+
+huggingface-hub
+0.16.4
+Apache Software License
+Hugging Face, Inc.
+https://github.com/huggingface/huggingface_hub
+Client library to download and publish models, datasets and other repos on the huggingface.co hub
+
+idna
+3.4
+BSD License
+Kim Davies <kim@cynosure.com.au>
+https://github.com/kjd/idna
+Internationalized Domain Names in Applications (IDNA)
+
+importlib-metadata
+5.2.0
+Apache Software License
+Jason R. Coombs
+https://github.com/python/importlib_metadata
+Read metadata from Python packages
+
+importlib-resources
+5.13.0
+Apache Software License
+Barry Warsaw
+https://github.com/python/importlib_resources
+Read resources from Python packages
+
+ipykernel
+6.25.0
+BSD License
+IPython Development Team <ipython-dev@scipy.org>
+https://ipython.org
+IPython Kernel for Jupyter
+
+ipython
+8.14.0
+BSD License
+The IPython Development Team
+https://ipython.org
+IPython: Productive Interactive Computing
+
+jax
+0.4.13
+Apache-2.0
+JAX team
+https://github.com/google/jax
+Differentiate, compile, and transform Numpy code.
+
+jedi
+0.19.0
+MIT License
+David Halter
+https://github.com/davidhalter/jedi
+An autocompletion tool for Python that can be used for text editors.
+
+jieba3k
+0.35.1
+UNKNOWN
+Sun, Junyi
+http://github.com/fxsjy
+Chinese Words Segementation Utilities
+
+joblib
+1.3.0
+BSD License
+Gael Varoquaux <gael.varoquaux@normalesup.org>
+https://joblib.readthedocs.io
+Lightweight pipelining with Python functions
+
+jupyter_client
+8.3.0
+BSD License
+Jupyter Development Team <jupyter@googlegroups.com>
+https://jupyter.org
+Jupyter protocol implementation and client libraries
+
+jupyter_core
+5.3.1
+BSD License
+Jupyter Development Team <jupyter@googlegroups.org>
+https://jupyter.org
+Jupyter core package. A base package on which Jupyter projects rely.
+
+keras
+2.13.1
+Apache Software License
+Keras team
+https://keras.io/
+Deep learning for humans.
+
+kiwisolver
+1.4.4
+BSD License
+The Nucleic Development Team <sccolbert@gmail.com>
+https://github.com/nucleic/kiwi
+A fast implementation of the Cassowary constraint solver
+
+langcodes
+3.3.0
+MIT License
+Elia Robyn Speer
+https://github.com/rspeer/langcodes
+Tools for labeling human languages with IETF language tags
+
+libclang
+16.0.6
+Apache Software License
+Tao He
+https://github.com/sighingnow/libclang
+Clang Python Bindings, mirrored from the official LLVM repo: https://github.com/llvm/llvm-project/tree/main/clang/bindings/python, to make the installation process easier.
+
+lxml
+4.9.2
+BSD License
+lxml dev team
+https://lxml.de/
+Powerful and Pythonic XML processing library combining libxml2/libxslt with the ElementTree API.
+
+matplotlib
+3.7.2
+Python Software Foundation License
+John D. Hunter, Michael Droettboom
+https://matplotlib.org
+Python plotting package
+
+matplotlib-inline
+0.1.6
+BSD 3-Clause
+IPython Development Team
+https://github.com/ipython/matplotlib-inline
+Inline Matplotlib backend for Jupyter
+
+ml-dtypes
+0.2.0
+Apache Software License
+ml_dtypes authors <ml_dtypes@google.com>
+https://github.com/jax-ml/ml_dtypes
+UNKNOWN
+
+murmurhash
+1.0.9
+MIT License
+Explosion
+https://github.com/explosion/murmurhash
+Cython bindings for MurmurHash
+
+nest-asyncio
+1.5.7
+BSD License
+Ewald R. de Wit
+https://github.com/erdewit/nest_asyncio
+Patch asyncio to allow nested event loops
+
+newspaper3k
+0.2.8
+MIT
+Lucas Ou-Yang
+https://github.com/codelucas/newspaper/
+Simplified python article discovery & extraction.
+
+nltk
+3.8.1
+Apache Software License
+NLTK Team
+https://www.nltk.org/
+Natural Language Toolkit
+
+numpy
+1.24.3
+BSD License
+Travis E. Oliphant et al.
+https://www.numpy.org
+Fundamental package for array computing in Python
+
+nvidia-cublas-cu11
+11.11.3.6
+Other/Proprietary License
+Nvidia CUDA Installer Team
+https://developer.nvidia.com/cuda-zone
+CUBLAS native runtime libraries
+
+nvidia-cudnn-cu11
+8.6.0.163
+Other/Proprietary License
+Nvidia CUDA Installer Team
+https://developer.nvidia.com/cuda-zone
+cuDNN runtime libraries
+
+oauthlib
+3.2.2
+BSD License
+The OAuthlib Community
+https://github.com/oauthlib/oauthlib
+A generic, spec-compliant, thorough implementation of the OAuth request-signing logic
+
+opt-einsum
+3.3.0
+MIT
+Daniel Smith
+https://github.com/dgasmith/opt_einsum
+Optimizing numpys einsum function
+
+packaging
+23.1
+Apache Software License; BSD License
+Donald Stufft <donald@stufft.io>
+https://github.com/pypa/packaging
+Core utilities for Python packages
+
+pandas
+2.0.2
+BSD License
+The Pandas Development Team <pandas-dev@python.org>
+https://pandas.pydata.org
+Powerful data structures for data analysis, time series, and statistics
+
+parso
+0.8.3
+MIT License
+David Halter
+https://github.com/davidhalter/parso
+A Python Parser
+
+pathy
+0.10.2
+Apache Software License
+Justin DuJardin
+https://github.com/justindujardin/pathy
+pathlib.Path subclasses for local and cloud bucket storage
+
+pexpect
+4.8.0
+ISC License (ISCL)
+Noah Spurrier; Thomas Kluyver; Jeff Quast
+https://pexpect.readthedocs.io/
+Pexpect allows easy control of interactive console applications.
+
+pickleshare
+0.7.5
+MIT License
+Ville Vainio
+https://github.com/pickleshare/pickleshare
+Tiny 'shelve'-like database with concurrency support
+
+platformdirs
+3.10.0
+MIT License
+UNKNOWN
+https://github.com/platformdirs/platformdirs
+A small Python package for determining appropriate platform-specific dirs, e.g. a "user data dir".
+
+preshed
+3.0.8
+MIT License
+Explosion
+https://github.com/explosion/preshed
+Cython hash table that trusts the keys are pre-hashed
+
+prompt-toolkit
+3.0.39
+BSD License
+Jonathan Slenders
+https://github.com/prompt-toolkit/python-prompt-toolkit
+Library for building powerful interactive command lines in Python
+
+protobuf
+4.23.4
+3-Clause BSD License
+protobuf@googlegroups.com
+https://developers.google.com/protocol-buffers/
+UNKNOWN
+
+psutil
+5.9.5
+BSD License
+Giampaolo Rodola
+https://github.com/giampaolo/psutil
+Cross-platform lib for process and system monitoring in Python.
+
+ptyprocess
+0.7.0
+ISC License (ISCL)
+Thomas Kluyver
+https://github.com/pexpect/ptyprocess
+Run a subprocess in a pseudo terminal
+
+pure-eval
+0.2.2
+MIT License
+Alex Hall
+http://github.com/alexmojaki/pure_eval
+Safely evaluate AST nodes without side effects
+
+py-readability-metrics
+1.4.5
+MIT License
+Carmine DiMAscio
+https://github.com/cdimascio/py-readability-metrics
+Score text "Readability" with popular formulas and metrics including Flesch-Kincaid, Gunning Fog, ARI, Dale Chall, SMOG, Spache and more
+
+pyahocorasick
+2.0.0
+BSD License
+Wojciech Muła
+http://github.com/WojciechMula/pyahocorasick
+pyahocorasick is a fast and memory efficient library for exact or approximate multi-pattern string search.  With the ``ahocorasick.Automaton`` class, you can find multiple key string occurrences at once in some input text.  You can use it as a plain dict-like Trie or convert a Trie to an automaton for efficient Aho-Corasick search. And pickle to disk for easy reuse of large automatons. Implemented in C and tested on Python 3.6+. Works on Linux, macOS and Windows. BSD-3-Cause license.
+
+pyasn1
+0.5.0
+BSD License
+Ilya Etingof
+https://github.com/pyasn1/pyasn1
+Pure-Python implementation of ASN.1 types and DER/BER/CER codecs (X.208)
+
+pyasn1-modules
+0.3.0
+BSD License
+Ilya Etingof
+https://github.com/pyasn1/pyasn1-modules
+A collection of ASN.1-based protocols modules
+
+pydantic
+1.10.12
+MIT License
+Samuel Colvin
+https://github.com/pydantic/pydantic
+Data validation and settings management using python type hints
+
+pyparsing
+3.0.9
+MIT License
+Paul McGuire <ptmcg.gm+pyparsing@gmail.com>
+https://github.com/pyparsing/pyparsing/
+pyparsing module - Classes and methods to define and execute parsing grammars
+
+python-dateutil
+2.8.2
+Apache Software License; BSD License
+Gustavo Niemeyer
+https://github.com/dateutil/dateutil
+Extensions to the standard Python datetime module
+
+pytz
+2023.3
+MIT License
+Stuart Bishop
+http://pythonhosted.org/pytz
+World timezone definitions, modern and historical
+
+pyzmq
+25.1.0
+BSD License; GNU Library or Lesser General Public License (LGPL)
+Brian E. Granger, Min Ragan-Kelley
+https://pyzmq.readthedocs.org
+Python bindings for 0MQ
+
+regex
+2023.6.3
+Apache Software License
+Matthew Barnett
+https://github.com/mrabarnett/mrab-regex
+Alternative regular expression module, to replace re.
+
+requests
+2.31.0
+Apache Software License
+Kenneth Reitz
+https://requests.readthedocs.io
+Python HTTP for Humans.
+
+requests-file
+1.5.1
+Apache Software License
+David Shea
+http://github.com/dashea/requests-file
+File transport adapter for Requests
+
+requests-oauthlib
+1.3.1
+BSD License
+Kenneth Reitz
+https://github.com/requests/requests-oauthlib
+OAuthlib authentication support for Requests.
+
+rsa
+4.9
+Apache Software License
+Sybren A. Stüvel
+https://stuvel.eu/rsa
+Pure-Python RSA implementation
+
+safetensors
+0.3.1
+Apache Software License
+UNKNOWN
+https://github.com/huggingface/safetensors
+Fast and Safe Tensor serialization
+
+scikit-learn
+1.3.0
+BSD License
+UNKNOWN
+http://scikit-learn.org
+A set of python modules for machine learning and data mining
+
+scipy
+1.11.1
+BSD License
+UNKNOWN
+https://scipy.org/
+Fundamental algorithms for scientific computing in Python
+
+sgmllib3k
+1.0.0
+BSD License
+Hardcoded Software
+http://hg.hardcoded.net/sgmllib
+Py3k port of sgmllib.
+
+six
+1.16.0
+MIT License
+Benjamin Peterson
+https://github.com/benjaminp/six
+Python 2 and 3 compatibility utilities
+
+smart-open
+6.3.0
+MIT License
+Radim Rehurek
+https://github.com/piskvorky/smart_open
+Utils for streaming large files (S3, HDFS, GCS, Azure Blob Storage, gzip, bz2...)
+
+soupsieve
+2.4.1
+MIT License
+Isaac Muse <Isaac.Muse@gmail.com>
+https://github.com/facelessuser/soupsieve
+A modern CSS selector implementation for Beautiful Soup.
+
+spacy
+3.6.0
+MIT License
+Explosion
+https://spacy.io
+Industrial-strength Natural Language Processing (NLP) in Python
+
+spacy-legacy
+3.0.12
+MIT License
+Explosion
+https://spacy.io
+Legacy registered functions for spaCy backwards compatibility
+
+spacy-loggers
+1.0.4
+MIT
+Explosion
+https://github.com/explosion/spacy-loggers
+Logging utilities for SpaCy
+
+spacytextblob
+4.0.0
+MIT License
+SamEdwardes
+https://github.com/SamEdwardes/spacytextblob
+A TextBlob sentiment analysis pipeline component for spaCy.
+
+srsly
+2.4.7
+MIT License
+Explosion
+https://github.com/explosion/srsly
+Modern high-performance serialization utilities for Python
+
+stack-data
+0.6.2
+MIT License
+Alex Hall
+http://github.com/alexmojaki/stack_data
+Extract data from python stack frames and tracebacks for informative displays
+
+syllables
+1.0.7
+GNU General Public License v3 (GPLv3); Other/Proprietary License
+David L. Day
+https://github.com/prosegrinder/python-syllables
+A Python package for estimating the number of syllables in a word.
+
+tensorboard
+2.13.0
+Apache Software License
+Google Inc.
+https://github.com/tensorflow/tensorboard
+TensorBoard lets you watch Tensors Flow
+
+tensorboard-data-server
+0.7.1
+Apache Software License
+Google Inc.
+https://github.com/tensorflow/tensorboard/tree/master/tensorboard/data/server
+Fast data loading for TensorBoard
+
+tensorflow
+2.13.0
+Apache Software License
+Google Inc.
+https://www.tensorflow.org/
+TensorFlow is an open source machine learning framework for everyone.
+
+tensorflow-estimator
+2.13.0
+Apache Software License
+Google Inc.
+https://www.tensorflow.org/
+TensorFlow Estimator.
+
+tensorflow-io-gcs-filesystem
+0.32.0
+Apache Software License
+Google Inc.
+https://github.com/tensorflow/io
+TensorFlow IO
+
+termcolor
+2.3.0
+MIT License
+Konstantin Lepa <konstantin.lepa@gmail.com>
+https://github.com/termcolor/termcolor
+ANSI color formatting for output in terminal
+
+textblob
+0.15.3
+MIT License
+Steven Loria
+https://github.com/sloria/TextBlob
+Simple, Pythonic text processing. Sentiment analysis, part-of-speech tagging, noun phrase parsing, and more.
+
+textsearch
+0.0.24
+MIT
+Pascal van Kooten
+https://github.com/kootenpv/textsearch
+Find strings/words in text; convenience and C speed
+
+thinc
+8.1.10
+MIT License
+Explosion
+https://github.com/explosion/thinc
+A refreshing functional take on deep learning, compatible with your favorite libraries
+
+threadpoolctl
+3.1.0
+BSD License
+Thomas Moreau
+https://github.com/joblib/threadpoolctl
+threadpoolctl
+
+tinysegmenter
+0.3
+BSD License
+Taku Kudo
+http://tinysegmenter.tuxfamily.org/
+Very compact Japanese tokenizer
+
+tldextract
+3.4.4
+BSD License
+John Kurkowski
+https://github.com/john-kurkowski/tldextract
+Accurately separates a URL's subdomain, domain, and public suffix, using the Public Suffix List (PSL). By default, this includes the public ICANN TLDs and their exceptions. You can optionally support the Public Suffix List's private domains as well.
+
+tokenizers
+0.13.3
+Apache Software License
+Anthony MOI
+https://github.com/huggingface/tokenizers
+Fast and Customizable Tokenizers
+
+tornado
+6.3.2
+Apache Software License
+Facebook
+http://www.tornadoweb.org/
+Tornado is a Python web framework and asynchronous networking library, originally developed at FriendFeed.
+
+tqdm
+4.65.0
+MIT License; Mozilla Public License 2.0 (MPL 2.0)
+UNKNOWN
+https://tqdm.github.io
+Fast, Extensible Progress Meter
+
+traitlets
+5.9.0
+BSD License
+IPython Development Team <ipython-dev@python.org>
+https://github.com/ipython/traitlets
+Traitlets Python configuration system
+
+transformers
+4.30.2
+Apache Software License
+The Hugging Face team (past and future) with the help of all our contributors (https://github.com/huggingface/transformers/graphs/contributors)
+https://github.com/huggingface/transformers
+State-of-the-art Machine Learning for JAX, PyTorch and TensorFlow
+
+typer
+0.9.0
+MIT License
+Sebastián Ramírez
+https://github.com/tiangolo/typer
+Typer, build great CLIs. Easy to code. Based on Python type hints.
+
+typing_extensions
+4.5.0
+Python Software Foundation License
+"Guido van Rossum, Jukka Lehtosalo, Łukasz Langa, Michael Lee" <levkivskyi@gmail.com>
+https://github.com/python/typing_extensions
+Backported and Experimental Type Hints for Python 3.7+
+
+tzdata
+2023.3
+Apache Software License
+Python Software Foundation
+https://github.com/python/tzdata
+Provider of IANA time zone data
+
+urllib3
+1.26.16
+MIT License
+Andrey Petrov
+https://urllib3.readthedocs.io/
+HTTP library with thread-safe connection pooling, file post, and more.
+
+wasabi
+1.1.2
+MIT
+Explosion
+https://github.com/explosion/wasabi
+A lightweight console printing and formatting toolkit
+
+wrapt
+1.14.1
+BSD License
+Graham Dumpleton
+https://github.com/GrahamDumpleton/wrapt
+Module for decorators, wrappers and monkey patching.
+
+xgboost
+1.7.6
+Apache Software License
+UNKNOWN
+https://github.com/dmlc/xgboost
+XGBoost Python Package
+
+zipp
+3.16.2
+MIT License
+Jason R. Coombs
+https://github.com/jaraco/zipp
+Backport of pathlib-compatible object wrapper for zip files
+
+
