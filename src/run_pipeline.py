@@ -19,10 +19,9 @@ from newspaper import Article
 from transformers import BertTokenizer, TFBertModel
 
 from classification import DataNormalizer, Pipeline
-from context import TextRankExtractor
 from non_latent_features import NonLatentFeatures
 from preprocess import Preprocessor
-from textual_relevance import TextualRelevance
+from similarity import LDASummaryExtractor, SimilarityModel
 
 # Preload our BERT models so our program doesn't hang for a very long time
 # during inference
@@ -56,7 +55,7 @@ input_content = get_article(
 
 # Get the summary
 info("Extracting summary...")
-summary_ext = TextRankExtractor()
+summary_ext = LDASummaryExtractor()
 _probabilities, summary = summary_ext.extract_main_themes(input_content, num_words=6)
 info("Main themes...extracted\n(Please enter into a PageRank algorithm)")
 print(f"\n{'-'*len(summary)}\n\n{summary}\n\n{'-'*len(summary)}\n")
@@ -88,7 +87,7 @@ info("Preprocessing...done")
 
 # Similarity features
 info("Similarity feature extraction...")
-tfidf_1_2 = TextualRelevance("tfidf", input_content_tokens, ngram_range=(1, 2))
+tfidf_1_2 = SimilarityModel("tfidf", input_content_tokens, ngram_range=(1, 2))
 cosine_dist = tfidf_1_2.cosine_dist(input_content_tokens, ctx_tokens)
 word_app = tfidf_1_2.word_appearance(input_content_tokens, ctx_tokens)
 matching = tfidf_1_2.matching_score(input_content_tokens, ctx_tokens)

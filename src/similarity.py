@@ -1,13 +1,20 @@
+from typing import Any, List, Tuple
+
+import gensim.downloader
 import numpy as np
+from gensim import corpora
+from gensim.models import LdaModel
 from scipy import spatial
 from sklearn.feature_extraction.text import TfidfVectorizer
-import gensim.downloader
 
-class TextualRelevance():
+from preprocess import Preprocessor
+
+
+class SimilarityModel():
     def __init__(self, embedding_type, dataset = None, ngram_range = (1,1), word2vec_type = 'word2vec-google-news-300'):
         """Perform textual relevance calculation
 
-        TextualRelevance calculates the average distance between a
+        SimilarityModel calculates the average distance between a
         target document and a list of similar documents. The higher
         the value the more likely are the two documents similar. We
         provide two similarity metrics: cosine distance and word
@@ -28,7 +35,7 @@ class TextualRelevance():
 
         Returns
         -------
-        tr : TextualRelevance()
+        tr : SimilarityModel()
             A Textual Relevance instance
 
         Methods
@@ -46,7 +53,7 @@ class TextualRelevance():
         >>> ds = DatasetLoader().load_fakenewsnet(drop_if_less_than_num_contexts=3)
         >>> df = ds.as_pandas()
         >>> df["content"] = df["content"].apply(pp.preprocess_and_tokenize)
-        >>> tfidf = TextualRelevance('tfidf', df.content)
+        >>> tfidf = SimilarityModel('tfidf', df.content)
         >>> tfidf.cosine_dist(df['content'].iloc[0], [
             \ pp.preprocess_and_tokenize(df['ctx2_content'].iloc[0]), 
             \ pp.preprocess_and_tokenize(df['ctx3_content'].iloc[0])])
@@ -189,3 +196,79 @@ class TextualRelevance():
             out.append(np.sum(self.vectorizer(common_words)) / np.sum(self.vectorizer(unique_context_words)))
 
         return np.mean(out)
+
+
+class LDASummaryExtractor:
+    def __init__(self):
+        # Punctuation is removed since we don't want punctuation to be a possible keyword.
+        self.preprocessor = Preprocessor(remove_punctuation=True)
+    
+    def extract_main_themes(self, content: str,
+                            num_words=10,
+                            num_topics=1,
+                            ignore_numerical_keywords=True) -> Tuple[List[Any], str]:
+        """Extract the main themes out of the content in a news article.
+
+        Args:
+            content (str): The news article
+            num_words (int, optional): The number of keywords to consider per topic. Defaults to 10.
+            num_topics (int, optional): The number of topics to consider. Defaults to 1.
+            ignore_numerical_keywords (bool, optional): Whether to return
+            keywords which are just numbers. Keywords which are just dates or
+            money values can sometimes not be useful. Defaults to False.
+
+        Returns:
+            Tuple[List[Any], str]: A tuple consisting of the main themes
+            extracted from the content and the string summary of length
+            num_words of the topics.
+        """
+        documents = list(map(self.preprocessor.preprocess_and_tokenize, content.split("\n")))
+        dictionary = corpora.Dictionary(documents)
+
+        corpus = list(map(dictionary.doc2bow, documents))
+
+        lda_model = LdaModel(
+            corpus,
+            num_topics=num_topics,
+            id2word=dictionary,
+            passes=20,
+            # Reproducible
+            random_state=42
+        )
+
+        main_themes = lda_model.show_topics(
+            num_topics=num_topics,
+            num_words=num_words,
+            formatted=False
+        )
+
+        all_keywords: List[Tuple[str, float]] = []
+        for topic_id, words in main_themes:
+            all_keywords.extend(words)
+        
+        # Sort by decreasing probability
+        all_keywords.sort(key=lambda p: p[1], reverse=True)
+
+        # Deduplicate keywords from all topics and select by probability. Only take
+        # num_words amount of words.
+        keywords = []
+        for word, proba in all_keywords:
+            if word in keywords:
+                # Deduplication
+                continue
+            if ignore_numerical_keywords and word.isnumeric():
+                continue
+            keywords.append(word)
+            if len(keywords) >= num_words:
+                break
+
+        return main_themes, " ".join(keywords)
+
+
+if __name__ == "__main__":
+    import sys
+    print("Text to extract context from: ", end="", flush=True)
+    content = sys.stdin.read()
+    main_themes, summary_string = LDASummaryExtractor().extract_main_themes(content)
+    print(main_themes)
+    print(summary_string)
