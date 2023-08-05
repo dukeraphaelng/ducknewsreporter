@@ -416,17 +416,45 @@ Whilst our dataset is not imbalanced, we will still output this result for compa
 
 \todoany{Convert list of limitations to subsubsections with discussion.}
 
+\subsubsection*{Preprocessing and tokenization}\label{limitation:preprocessing}
+
+While our preprocessing was quite generic for NLP tasks, we believe there were a few oversights that caused unreliable results. Two issues were:
 \begin{itemize}
-  \item Preprocessing and tokenization was a bit funny:
-        \begin{enumerate}
-          \item Converting everything to lowercase destroyed acronyms such as ``US''
-          \item \verb|nltk| lemmatizer required manually specifying the part of speech to work. We could have used a different library that extracted the POS automatically. Alternatively we could have investigated not lemmatizing at all to maintain proper structure for non-latent features and BERT embeddings.\label{limitation:preprocessing}
-        \end{enumerate}
-  \item Summary extraction didn't produce perfect results~\label{limitation:summary-extraction}
-  \item Article scraping sometimes returned no results even after manually figuring out why~\label{limitation:article-scraping}
-  \item Models trained on only US news, may be a problem
-  \item Dataset is small and only contains articles related to political events surrounding the 2016 US election.
+  \item Converting everything to lowercase destroyed acronyms such as ``US''. This changed the meaning of some sentences.
+  \item The \verb|nltk| lemmatizer required manually specifying the part of speech to work. This caused some verbs to be incorrectly lemmatized. We could have used a different library that extracted the POS automatically. Alternatively we could have investigated not lemmatizing at all to maintain proper structure for non-latent features and BERT embeddings.
 \end{itemize}
+
+This research would have really benefitted from less or no preprocessing at all. For all our features, there could be an argument where no preprocessing would have been better. For example summary extraction or BERT features could have learnt meaning from the unfiltered text. This could be investigated for future research to strengthen our features.
+
+\subsubsection*{Summary extraction}\label{limitation:summary-extraction}
+
+Our summary extraction extracted most of the correct meaning from the text. However two main issues remained causing it to produce in-perfect results:
+\begin{itemize}
+  \item Words would be unordered and if read together in a sentence, wouldn't make sense to a human.
+  \item \emph{Junk} such as connectives would be left in the summary.
+\end{itemize}
+
+We believe future research could have looked into better tuned models that synthesized higher quality topic sentences. In our research, there were very few but we believe in particular a summary extractor trained on long-form news articles would have performed better. In addition, we could have also included the title since semantically, the title is supposed to tell the reader what the rest of the article is about.
+
+\subsubsection*{Article scraping}\label{limitation:article-scraping}
+
+We had intended our pipeline to be fully automatic, using an API to scrape for articles based on the keywords. For the scope of this project, we settled on manual scraping to show that using contextual articles would improve results. Unfortunately, after being passed to Google, some input summaries would return no or limited results and required human intervention to produce any articles. This was a particular problem.
+
+For Real labelled articles, we believe an improvement on the summary extractor reducing the amount of \emph{junk} returned would have improved results. However, we hypothesize that if an outrageous Fake article as introduced, we may very well find no results about the event online. One example is the following article about Trump \emph{``snorting cocaine''}:
+\begin{quote}
+  \textbf{10Fake:}\quad\articlecontent{10fake}
+\end{quote}
+This event never happened and consequently, we could not find any contextual articles about it. For our research, we skipped articles with no context. We believe one way to resolve this is to include the article with no similarity score or a low one. More research needs to be done into whether mixed articles with and without a similarity can perform well together especially considering in the real world, this is definatly an issue.
+
+\subsubsection*{Dataset}
+
+For the scope of our research, we used a fairly small dataset to present our contributions to contextual article scraping. However, this dataset only concentrated on the political events surrounding the 2016 United States election. This causes two main problems for our model:
+\begin{itemize}
+  \item We are prone to overfit our models since such a small dataset will be easily segmented by most state of the art methods.
+  \item Our model will learn specifics in the US election which we do not want to learn. This could cause the models to be confused if we try to classify more recent news.
+\end{itemize}
+
+In the future research could be done to provide an automated API for scraping which would have allowed for a much larger dataset to be used that covers multiple world events across different years. Along with this, masking out event specific words could have been done to reduce learning of event specifics.
 
 \cleardoublepage
 \pagebreak
