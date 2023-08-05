@@ -76,6 +76,9 @@
 \rhead{Duck News Reporters}
 \cfoot[C]{\thepage}
 
+% L{3cm} for a ragged right paragraph in tabular tables.
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
 \renewcommand{\headrulewidth}{1pt}
 \renewcommand{\footrulewidth}{0.5pt}
 
@@ -345,7 +348,9 @@ After gathering three URL links for each context article, we use the Python \ver
 
 \newsubsection{Model --- Machine learning}
 
-\todojim{Write}
+We used four state of the art machine learning models (commonly used in fake news detection) to perform our classification. We chose Logistic Regression (LR), Support Vector Machines (SVM), Decision Trees (DT), and XGBoost (XGB). Due to the small size of our dataset, we needed to tune the regularization hyperparameters to ensure our models didn't overfit. In particular, tree-based models such as DT and XGB should be able to fully segment our classes so we need to control the depth of the tree and splitting criteria. Models such as LR and SVM will need to control L2 regularization. In SVM, we will test the type of kernel used.
+
+To find the best hyperparameters, we perform 5-Fold cross validation across 80\% of our dataset and average the validation score. We pick the parameters with the best validation score and test our model with the remaining 20\% of the dataset. The table in the Appendix~\ref{apppendix:machine-learning} shows the hyperparameters tested for each model and a reason for why the ranges were selected.
 
 \newsubsection{Model --- Neural networks}
 
@@ -474,6 +479,44 @@ Whilst our dataset is not imbalanced, we will still output this result for compa
     \bottomrule
   \end{tabular}
   \caption{Articles we were not able to find context articles for.}
+\end{table}
+
+\newsection{Machine learning}\label{apppendix:machine-learning}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{cL{2cm}L{2.5cm}p{7cm}}
+    \toprule
+    Model & Parameter & Selection & Reasoning\\
+    \midrule
+    \multirow{2}{*}{\shortstack{Logistic\\Regression}}& Inverse L2 coefficient & 0.2:1.2:0.2 & This is the main regularization parameter. We chose a range around the default 1.0 but shifted our range to be more biased towards higher regularization.\\
+    \cmidrule{2-4}
+    & Solver & lbfgs, liblinear & The liblinear solver was suggested by the documentation as an alternative for small datasets.\\
+    \midrule
+    \multirow{4}{*}{SVM}& Inverse L2 coefficient & 0.2:1.2:0.2 & Same reasoning as LR regularization.\\
+    \cmidrule{2-4}
+    & Kernel & rbf, poly, sigmoid & Selecting the right kernel for a dataset will make our methods perform better.\\
+    \cmidrule{2-4}
+    & Kernel coefficient & $\frac{1}{\text{n\_features}\times var(X)}$, 0.01, 0.05 & Same reason as above.\\
+    \midrule
+    \multirow{4}{*}{Decision Tree}& Criterion & gini, entropy & To test different methods of measuring split quality on the node.\\
+    \cmidrule{2-4}
+    & Max depth & no limit, 3:9:2 & Controls how complex the tree is. A less deeper tree is more regularized.\\
+    \cmidrule{2-4}
+    & Max features & $0.3\times \text{n\_features}$, $\sqrt{\text{n\_features}}$, all features & Standard defaults suggested by documentation. Is a regularization control so not all features are considered at each split.\\
+    \cmidrule{2-4}
+    & Min samples for splitting node & 2:4:1 & Reduce the number of leafs with only one sample of representation to increase regularization.\\
+    \midrule
+    \multirow{4}{*}{XGBoost}& Learning rate & 0.1:0.5:0.1 & Smaller learning rates reduce overfitting.\\
+    \cmidrule{2-4}
+    & Max depth & 1:6:1 & Same as max depth for DTs.\\
+    \cmidrule{2-4}
+    & L2 coefficient & 0.8:1.6:0.2 & Testing higher regularization. Default is 1.\\
+    \cmidrule{2-4}
+    & L1 coefficient & 0:0.4:0.2 & Testing higher regularization. Default is 0.0.\\
+    \bottomrule
+  \end{tabular}
+  \caption{Table of all the models chosen and the hyperparameters selected for each model. We describe a range of values in the format start:end:step, where start and end are inclusive.}
 \end{table}
 
 \end{document}
