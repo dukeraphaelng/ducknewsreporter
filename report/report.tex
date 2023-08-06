@@ -226,7 +226,7 @@ Through this research, we have analysed and determined the most effective lingui
   Figure~\ref{pipeline} shows our mostly linear classification pipeline. After preprocessing and tokenization, we extract contextual articles which are fed into a similarity model to form our first feature. Additionally, non-latent features from raw text and BERT embeddings form the rest of our features. The concatenation of all the features are fed into our classification models which infers a binary classification label.
 \end{minipage}
 
-\newsubsection{Preprocessing and tokenization}
+\newsubsection{Preprocessing and tokenization}\label{section:preprocessing}
 
 Before extracting any features, we will preprocess our input and convert the long form text into tokens. We perform the following preprocessing methods in order:
 
@@ -469,7 +469,7 @@ We experimented with different feature normalisation techniques across the entir
 Ultimately, after each scaling technique was applied and the classification was conducted, the results with each type of normalisation and various combinations of them underperformed compared to the original dataset without normalisation. There are a few different reasons why this was the case but after testing various classification models, the most probable reasons are the small size of the dataset used and the lack of appropriate scaling methods available for the linguistic features that rely on counting. Due to this, we decided not to use normalisation for our results.
 
 
-\newsubsection{Model --- Machine learning}
+\newsubsection{Model --- Machine learning}\label{section:machine-learning}
 
 We used four state of the art machine learning models (commonly used in fake news detection) to perform our classification. We chose Logistic Regression (LR), Support Vector Machines (SVM), Decision Trees (DT), and XGBoost (XGB). Due to the small size of our dataset, we needed to tune the regularization hyperparameters to ensure our models didn't overfit. In particular, tree-based models such as DT and XGB should be able to fully segment our classes so we need to control the depth of the tree and splitting criteria. Models such as LR and SVM will need to control L2 regularization. In SVM, we will test the type of kernel used.
 
@@ -485,7 +485,7 @@ We used a very simple structure with 4 hidden layers using the ReLU activation f
 
 \newsection{Experimental setup}
 
-\newsubsection{Dataset}
+\newsubsection{Dataset}\label{section:dataset}
 
 For our research, we use the \verb|FakeNewsData| dataset collated by Horne and Adali in~\cite{horne2017} on research regarding fake news in the 2016 presidential elections. This dataset contains two subsets, \emph{``Buzzfeed Political News''}, and \emph{``Random Political News''}. We make use of the \emph{Buzzfeed} subset since this contains long form text articles that are binary categorized in with Fake and Real labels. The \emph{Random} subset contains an extra label, Satire, which is out of scope for our research.
 
@@ -517,7 +517,7 @@ After extending this dataset with our novel context article scraping and similar
   \label{article-samples}
 \end{table}
 
-\newsubsection{Evaluation metrics}
+\newsubsection{Evaluation metrics}\label{section:eval}
 
 To evaluate our classification models, we will use accuracy and F1 score. These metrics are commonly used for binary classification problems as well as in the misinformation detection domain.
 
@@ -651,15 +651,26 @@ In the future research could be done to provide an automated API for scraping wh
 
 \begin{table}[H]
   \centering
-  \begin{tabular}{lll}
-    Jim & Dhruv & Duke \\
+  \begin{tabular}{cp{{7cm}}}
+    \toprule
+    Member & Major contributions to project and report\\
     \midrule
+    Jim & \shortstack{Proprocessing \& tokenization\\Similarity model article scraping\\Machine learning models}\\
+    \midrule
+    Dhruv & \\
+    \midrule
+    Duke & \\
+    \bottomrule
   \end{tabular}
 \end{table}
 
 \subsection{Jim}
 
-\todojim{$\sim$1pg detailing individual contributions}
+Jim contributed to the project particularly in the sections of preprocessing \& tokenization, similarity model (Article Scraping), and the machine learning models. At the start of the project Jim contributed to the manual scraping of articles. Towards the end of the project, Jim was also responsible for writing code to combine all the features together and integrating all work completed by the other members so that models can be run using common bootstrap code.
+
+In the project proposal and literature review, Jim contributed equally with the team and worked on each other's sections. In the project demo, Jim contributed less than average due to the fact that a live online demo was cut from the final version due to time and validity reasons. It was decided that since the rest of the team already started their assigned sections, Jim would start on the report and attempt to contribute more than average.
+
+In the report Jim contributed to the Sections~\ref{section:preprocessing}, \ref{section:summary-extraction}, \ref{section:article-scraping}, \ref{section:machine-learning}, \ref{section:dataset}, \ref{section:eval}, the machine learning part in results and related limitations.
 
 \subsection{Dhruv}
 
