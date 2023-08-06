@@ -184,7 +184,7 @@
 
 \newsection{Introduction}
 
-\todoany{Describe the problem domain and aim of study, briefly introduce the developed methods and summarise your experimental findings}
+\tododhruv{Add intro citations}
 
 As the distribution of news shifts towards social media, there is a rise in the dissemination of fake news. We define fake news as the creation of information presented as legitimate journalism that describes a fictitious event or fabricates details of an event in an attempt to mislead readers. This phenomenon became a major focal point in journalism during the 2016 US elections with political parties labelling many publications and articles as fake news. There are two huge issues with how this occurred in 2016:
 
@@ -214,12 +214,17 @@ Through this research, we have analysed and determined the most effective lingui
 
 \newsection{Related work}
 
-Methods of similarity comparison have been attempted in a few fake news detection papers. Antoun et al. [%https://www.researchgate.net/profile/Amir-Hussein/publication/340478553_State_of_the_Art_Models_for_Fake_News_Detection_Tasks/links/61b17f704d7ff64f053695d6/State-of-the-Art-Models-for-Fake-News-Detection-Tasks.pdf]
+\newsubsection{Similarity Comparison using Titles}
+Methods of similarity comparison have been attempted in a few fake news detection papers. Antoun et al. \cite{antoun2020state}
 presents an analysis of various fake news detection methods including an automated model winning an international competition on this topic. This model used the title of the queried article to search Google for similar articles and compared the word embeddings for the title against those of the top 5 searched articles. It used cosine similarity only and tested the similarity scores along with other features such as lexicon based features. Many classifiers were tested including SVM, XGBoost and random forest classifiers. This resulted in an effective model that was moderately effective for fake news classification.
 
-Another method
+\newsubsection{Similarity Comparison using Fixed News Database}
+A different approach to similarity detection is used in Alsuliman et al. \cite{alsuliman2022social} where similarity scores are generated between the queried article and every article in a database of news articles. This method takes the highest similarity score for each queried article and then uses a greedy approach to set a similarity score threshold for real articles that maximises the overall accuracy. This paper uses three well-studied techniques for similarity score calculation - cosine similarity, word appearance and TD-IDF. It explains how these metrics are used within this problem and contrasts the results of each. The most significant limitation of this paper is that the similarity articles that were selected were rarely relevant to the topic of the queried article.
 
-\tododhruv{Describe the current state-of-the-art or related literature in this problem domain}
+This paper forms the basis of our set of similarity metrics and we analyse each of the three metrics given. Our approach improves upon the methodology of this approach by capitalising on Google's PageRank algorithm to only select articles with a high chance of being relevant to the queried topic. Additionally, our dataset consists of around 10 times as many articles and our classification is done using machine learning and deep learning classifiers rather than a greedy approach to fit a more realistic situation where fake news detection is required.
+
+\newsubsection{Linguistic and Additional Features}
+Vijayaraghavan et al. \cite{vijayaraghavan2020fake} presents a series of different fake news model alongside useful linguistic features for this task. It addresses preprocessing techniques including the removal of punctuation and stop words whichi is an effective technique in this domain. It analyses the polarity of news articles and determines that both real and fake news have similar polarity distributions making this an ineffective method of distinguishing between them. It also analyses the part of speech distribution between fake and real news and determines that features such as the number of adverbs and adjectives is higher in fake news but the number of nouns and pronouns is higher in real news. This is because fake news relies on descriptive language to establish facts whereas real news refers to research and experts to infer its legitimacy.
 
 \newsection{Methods}
 
@@ -464,8 +469,6 @@ Figure~\ref{similarity-metrics} shows our results with similarity metrics compar
 
 \newsubsection{Feature Normalisation}
 
-\tododhruv{Write}
-
 We experimented with different feature normalisation techniques across the entire dataset and for specific features. Normalisation was conducted columnwise for each feature so that each feature was normalised individually.
 
 \begin{quote}
@@ -486,8 +489,6 @@ We used four state of the art machine learning models (commonly used in fake new
 To find the best hyperparameters, we perform 5-Fold cross validation across 80\% of our dataset and average the validation score. We pick the parameters with the best validation score and test our model with the remaining 20\% of the dataset. The table in the Appendix~\ref{apppendix:machine-learning} shows the hyperparameters tested for each model and a reason for why the ranges were selected.
 
 \newsubsection{Model --- Neural networks}
-
-\tododhruv{Write}
 
 The second approach taken for classification was using deep learning as we hypothesised that it would be able to find more complex relationships between the large variety of BERT, linguistic, and similarity features. Initially both convolutional neural networks and simple feedforward layers were considered. After analysing the features and noting that they did not have any spacial relation, only the second approach was considered.
 
@@ -594,7 +595,6 @@ This allows for a fair assessment of both the quantity and quality of the predic
 
 \newsection{Results and discussion}
 
-\tododhruv{Add intro to results}
 \begin{comment}
 For our machine learning models, we observed a increase in accuracy and F1 as we added our higher quality features to the model. Table~\ref{machine-learning-results} shows our results for all models.
 
@@ -694,8 +694,6 @@ Table \ref{machine-learning-results} shows the results for the four machine lear
 \end{table}
 
 \todojim{Add table of parameters of models}
-
-\tododhruv{Neural nets}
 
 \newsection{Conclusion}
 
