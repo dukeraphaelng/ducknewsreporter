@@ -26,6 +26,7 @@
 \usepackage{enumitem} % \begin{enumerate}[label=(\alph*)]
 \usepackage{pgfplots}
 \usepackage{xifthen}% provides \isempty test
+\usepackage{multirow}% multrow for table
 \usepackage[font=small,labelfont=bf]{caption}
 
 \usepackage{subfig}
@@ -275,6 +276,14 @@ After preprocessing, tokens are then generated based on any whitespace and punct
 BERT (Bidirectional Encoder Representations from Transformers) is a language representation model proposed by Devlin et al \cite{bert}. It is pretrained on BookCorpus and the English Wikipedia using masked language modeling (MLM) and next sentence prediction (NSP). MLM masks some of the input tokens with a training objective to predict the masked token simply based on context, and the model also concatenates two sentences with 50\% chance of being neighbouring sentences, and the model is pre-trained in the NSP layer to predict if the two are indeed neighbours \cite{bert}. BERT obtains SOTA results on several tasks and is suitable for representing document and textual data. Hence, we will be using BERT as the main feature to encode our articles. We will use HuggingFace's 'bert-base-uncased' pretrained model which trains on uncased data. To encode an article, we slice the first 512 tokens of the respective article and pass it through 'bert-base-uncased' and output the CLS token's vector as BERT features for our classification model.
 
 \newsubsection{Feature --- Non-latent features} \label{section:non-latent-feat}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{img/non_latent_box_plot.png}
+  \caption{Non Latent Box Plot Features}
+  \label{box-plot}
+\end{figure}
+
 From our literature review and survey, we are able to identify a significant amount of non-latent features \cite{zhou2020survey, garg2022linguistic, horne2017}. After combining features that are similar, and removing features which we cannot calculate due to the need for proprietary softwares (i.e. LIWC), or due to the computational complexity of the algorithms, or related reasons, we are able to identify 81 numerical features suitable for our experiments. After synthesising their categorisations in the original articles, we come up with a grouping of 7 main categories (with their abbreviation in brackets), with each feature being able to calculated with a few methods:
 \begin{itemize}
   \item Diversity (div): number of unique words, or percentage of all unique words of a particular part of speech (e.g. noun, verb)
@@ -288,11 +297,11 @@ From our literature review and survey, we are able to identify a significant amo
 
 The feature names are designated using the format "\texttt{category}\_\texttt{featureType}\_\texttt{calculationMethod}", where category is the abbreviated \texttt{category}, \texttt{featureType} is the feature type within the category. Appendix \ref{appendix:non-latent-table} contains a full description and explanation of all non-latent features, their category, feature type, and their calculation method. Figure \ref{box-plot} is a box plot of all the non-latent features by their scale of power of 10. The majority of features are between the range of $[10^{-2}, 10^{1}]$. Several quantity and some diversity features are in the higher range of $[10^2, 10^3]$.
 
-\begin{figure}[H]
+\begin{figure}[h]
   \centering
-  \includegraphics[width=\textwidth]{img/non_latent_box_plot.png}
-  \caption{Non Latent Box Plot Features}
-  \label{box-plot}
+  \includegraphics[width=\textwidth]{img/non_latent_feat_prune.png}
+  \caption{Non-Latent Feature Pruning}
+  \label{fig:non-latent-feat-prune}
 \end{figure}
 
 We can then apply ANOVA on these non-latent features against the labels, and filter for those with a p-value less than the $\alpha$ significance level of 0.05. We identify that the removed features account to almost half of all features, and they include readability indices, the syntax tree depth features, and a few features from other categories, and diversity features are all below $\alpha$. We then apply Pearson correlation amongst the selected features and identify all correlation clusters. The matrix is available in Appendix \ref{appendix:correlation-matrx}. Afterwards, we can apply a selection method on the cluster where we remove all but one with the lowest p-value, specifically, we sort the selected features by p-value in ascending order with the lowest p at the front of the list, we then search for all features which have a correlation of at least $0.95$ and remove them from the current list, and continue until the end. Figure \ref{fig:non-latent-feat-prune} shows our results. After grouping them by their original category, we have the following counts, totalling to 29 features, which we will use for our classification models:
@@ -303,13 +312,6 @@ We can then apply ANOVA on these non-latent features against the labels, and fil
   \item Sentiment: 3 features
   \item Average: 1 feature
 \end{itemize}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{img/non_latent_feat_prune.png}
-  \caption{Non-Latent Feature Pruning}
-  \label{fig:non-latent-feat-prune}
-\end{figure}
 
 \newsubsection{Feature --- Similarity model}
 
@@ -702,7 +704,91 @@ In the report Jim contributed to the Sections~\ref{section:preprocessing}, \ref{
 \end{table}
 
 \newsection{Non-Latent Features}\label{appendix:non-latent-table}
-\tododuke{Put a latex table here for non-latent features}
+ \begin{longtable}[c]{| >{\centering\arraybackslash}p{.2\textwidth} | >{\centering\arraybackslash}p{.3\textwidth} | >{\centering\arraybackslash}p{.13\textwidth} | >{\centering\arraybackslash}p{.25\textwidth} |}
+\hline
+\textbf{Category}                  & \textbf{Feature Type}                & \textbf{Calculation}      & \textbf{Feature Name}       \\ \hline
+\multirow{14}{*}{Diversity}        & Noun (Unique)                        & \multirow{7}{*}{Count}    & div\_NOUN\_sum              \\ \cline{2-2} \cline{4-4} 
+                                   & Verb (Unique)                        &                           & div\_VERB\_sum              \\ \cline{2-2} \cline{4-4} 
+                                   & Adjective (Unique)                   &                           & div\_ADJ\_sum               \\ \cline{2-2} \cline{4-4} 
+                                   & Adverb (Unique)                      &                           & div\_ADV\_sum               \\ \cline{2-2} \cline{4-4} 
+                                   & Lexical Word (Unique)                &                           & div\_LEX\_sum               \\ \cline{2-2} \cline{4-4} 
+                                   & Content Word (Unique)                &                           & div\_CONT\_sum              \\ \cline{2-2} \cline{4-4} 
+                                   & Function Word (Unique)               &                           & div\_FUNC\_sum              \\ \cline{2-4} 
+                                   & Noun (Unique)                        & \multirow{7}{*}{Percent}  & div\_NOUN\_percent          \\ \cline{2-2} \cline{4-4} 
+                                   & Verb (Unique)                        &                           & div\_VERB\_percent          \\ \cline{2-2} \cline{4-4} 
+                                   & Adjective (Unique)                   &                           & div\_ADJ\_percent           \\ \cline{2-2} \cline{4-4} 
+                                   & Adverb (Unique)                      &                           & div\_ADV\_percent           \\ \cline{2-2} \cline{4-4} 
+                                   & Lexical Word (Unique)                &                           & div\_LEX\_percent           \\ \cline{2-2} \cline{4-4} 
+                                   & Content Word (Unique)                &                           & div\_CONT\_percent          \\ \cline{2-2} \cline{4-4} 
+                                   & Function Word (Unique)               &                           & div\_FUNC\_percent          \\ \hline
+\multirow{42}{*}{Quantity}         & Noun                                 & \multirow{18}{*}{Count}   & div\_NOUN\_sum              \\ \cline{2-2} \cline{4-4} 
+                                   & Verb                                 &                           & div\_VERB\_sum              \\ \cline{2-2} \cline{4-4} 
+                                   & Adjective                            &                           & div\_ADJ\_sum               \\ \cline{2-2} \cline{4-4} 
+                                   & Adverb                               &                           & div\_ADV\_sum               \\ \cline{2-2} \cline{4-4} 
+                                   & Pronoun                              &                           & div\_PRON\_sum              \\ \cline{2-2} \cline{4-4} 
+                                   & Personal Pronoun                     &                           & div\_DET\_sum               \\ \cline{2-2} \cline{4-4} 
+                                   & Possessive Pronoun                   &                           & div\_NUM\_sum               \\ \cline{2-2} \cline{4-4} 
+                                   & Determinant                          &                           & div\_PUNCT\_sum             \\ \cline{2-2} \cline{4-4} 
+                                   & Number                               &                           & div\_SYM\_sum               \\ \cline{2-2} \cline{4-4} 
+                                   & Punctuation                          &                           & div\_PRP\_sum               \\ \cline{2-2} \cline{4-4} 
+                                   & Symbol                               &                           & div\_PRP\$\_sum             \\ \cline{2-2} \cline{4-4} 
+                                   & Wh-Determinant                       &                           & div\_WDT\_sum               \\ \cline{2-2} \cline{4-4} 
+                                   & Cardinal Number                      &                           & div\_CD\_sum                \\ \cline{2-2} \cline{4-4} 
+                                   & Verb (Past Tense)                    &                           & div\_VBD\_sum               \\ \cline{2-2} \cline{4-4} 
+                                   & Stop Word                            &                           & div\_STOP\_sum              \\ \cline{2-2} \cline{4-4} 
+                                   & Lowercase Word                       &                           & div\_LOW\_sum               \\ \cline{2-2} \cline{4-4} 
+                                   & Uppercase Word                       &                           & div\_UP\_sum                \\ \cline{2-2} \cline{4-4} 
+                                   & Negation                             &                           & div\_NEG\_sum               \\ \cline{2-4} 
+                                   & Noun                                 & \multirow{18}{*}{Percent} & div\_NOUN\_percent          \\ \cline{2-2} \cline{4-4} 
+                                   & Verb                                 &                           & div\_VERB\_percent          \\ \cline{2-2} \cline{4-4} 
+                                   & Adjective                            &                           & div\_ADJ\_percent           \\ \cline{2-2} \cline{4-4} 
+                                   & Adverb                               &                           & div\_ADV\_percent           \\ \cline{2-2} \cline{4-4} 
+                                   & Pronoun                              &                           & div\_PRON\_percent          \\ \cline{2-2} \cline{4-4} 
+                                   & Personal Pronoun                     &                           & div\_DET\_percent           \\ \cline{2-2} \cline{4-4} 
+                                   & Possessive Pronoun                   &                           & div\_NUM\_percent           \\ \cline{2-2} \cline{4-4} 
+                                   & Determinant                          &                           & div\_PUNCT\_percent         \\ \cline{2-2} \cline{4-4} 
+                                   & Number                               &                           & div\_SYM\_percent           \\ \cline{2-2} \cline{4-4} 
+                                   & Punctuation                          &                           & div\_PRP\_percent           \\ \cline{2-2} \cline{4-4} 
+                                   & Symbol                               &                           & div\_PRP\$\_percent         \\ \cline{2-2} \cline{4-4} 
+                                   & Wh-Determinant                       &                           & div\_WDT\_percent           \\ \cline{2-2} \cline{4-4} 
+                                   & Cardinal Number                      &                           & div\_CD\_percent            \\ \cline{2-2} \cline{4-4} 
+                                   & Verb (Past Tense)                    &                           & div\_VBD\_percent           \\ \cline{2-2} \cline{4-4} 
+                                   & Stop Word                            &                           & div\_STOP\_percent          \\ \cline{2-2} \cline{4-4} 
+                                   & Lowercase Word                       &                           & div\_LOW\_percent           \\ \cline{2-2} \cline{4-4} 
+                                   & Uppercase Word                       &                           & div\_UP\_percent            \\ \cline{2-2} \cline{4-4} 
+                                   & Negation                             &                           & div\_NEG\_percent           \\ \cline{2-4} 
+                                   & Quote                                & \multirow{6}{*}{Count}    & div\_QUOTE\_sum             \\ \cline{2-2} \cline{4-4} 
+                                   & Noun Phrase                          &                           & div\_NP\_sum                \\ \cline{2-2} \cline{4-4} 
+                                   & Character                            &                           & div\_CHAR\_sum              \\ \cline{2-2} \cline{4-4} 
+                                   & Word                                 &                           & div\_WORD\_sum              \\ \cline{2-2} \cline{4-4} 
+                                   & Sentence                             &                           & div\_SENT\_sum              \\ \cline{2-2} \cline{4-4} 
+                                   & Syllable                             &                           & div\_SYLL\_sum              \\ \hline
+\multirow{5}{*}{Sentiment}         & Exclamation Mark                     & \multirow{3}{*}{Count}    & div\_!\_sum                 \\ \cline{2-2} \cline{4-4} 
+                                   & Question Mark                        &                           & div\_?\_sum                 \\ \cline{2-2} \cline{4-4} 
+                                   & All-Cap Word                         &                           & div\_CAPS\_sum              \\ \cline{2-4} 
+                                   & Polarity                             & \multirow{2}{*}{Index}    & div\_POL\_sum               \\ \cline{2-2} \cline{4-4} 
+                                   & Subjectivity                         &                           & div\_SUBJ\_sum              \\ \hline
+\multirow{6}{*}{Pronoun}           & First Person Singular                & \multirow{3}{*}{Count}    & div\_FPS\_sum               \\ \cline{2-2} \cline{4-4} 
+                                   & First Person Plural                  &                           & div\_FPP\_sum               \\ \cline{2-2} \cline{4-4} 
+                                   & Second / Third Person                &                           & div\_STP\_sum               \\ \cline{2-4} 
+                                   & First Person Singular                & \multirow{3}{*}{Percent}  & div\_FPS\_percent           \\ \cline{2-2} \cline{4-4} 
+                                   & First Person Plural                  &                           & div\_FPP\_percent           \\ \cline{2-2} \cline{4-4} 
+                                   & Second / Third Person                &                           & div\_STP\_percent           \\ \hline
+\multirow{4}{*}{Average}           & Character Per Word                   & \multirow{4}{*}{Average}  & div\_chars\_per\_word\_sum  \\ \cline{2-2} \cline{4-4} 
+                                   & Word Per Sentence                    &                           & div\_words\_per\_sent\_sum  \\ \cline{2-2} \cline{4-4} 
+                                   & Clause Per Sentence                  &                           & div\_claus\_per\_sent\_sum  \\ \cline{2-2} \cline{4-4} 
+                                   & Punctuation Per Sentence             &                           & div\_puncts\_per\_sent\_sum \\ \hline
+\multirow{2}{*}{Syntax Tree Depth} & Median Syntax Tree Depth             & \multirow{2}{*}{Median}   & div\_ALL\_sum               \\ \cline{2-2} \cline{4-4} 
+                                   & Median Noun Phrase Syntax Tree Depth &                           & div\_NP\_sum                \\ \hline
+\multirow{8}{*}{Readability}       & Gunning-Fog Index                    & \multirow{8}{*}{Index}    & div\_gunning-fog\_sum       \\ \cline{2-2} \cline{4-4} 
+                                   & Coleman-Liau Index                   &                           & div\_coleman-liau\_sum      \\ \cline{2-2} \cline{4-4} 
+                                   & Flesch Kincaid Grade Level           &                           & div\_dale-chall\_sum        \\ \cline{2-2} \cline{4-4} 
+                                   & Linsear Write                        &                           & div\_flesch-kincaid\_sum    \\ \cline{2-2} \cline{4-4} 
+                                   & SPACHE                               &                           & div\_linsear-write\_sum     \\ \cline{2-2} \cline{4-4} 
+                                   & Dale Chall Readability               &                           & div\_spache\_sum            \\ \cline{2-2} \cline{4-4} 
+                                   & Automated Readability Index (ARI)    &                           & div\_automatic\_sum         \\ \cline{2-2} \cline{4-4} 
+                                   & Flesch Reading Ease                  &                           & div\_flesch\_sum            \\ \hline
+\end{longtable}
 
 \newsection{Non-latent Feature Pearson Correlation Matrix}\label{appendix:correlation-matrx}
 \begin{figure}[H]
