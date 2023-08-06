@@ -269,11 +269,64 @@ After preprocessing, tokens are then generated based on any whitespace and punct
   \label{preprocessing}
 \end{table}
 
+\tododuke{Talk about doing average pooling of the entire output for future work instead of just using the CLS token}
+% \tododuke{Cite: https://huggingface.co/docs/transformers/model_doc/bert, https://huggingface.co/bert-base-uncased}
+\newsubsection{Feature --- BERT embeddings}
+"BERT (Bidirectional Encoder Representations from Transformers) is a language representation model proposed by Devlin et al. It pretrains on unlabeled text using masked language modeling (MLM) and next sentence prediction (NSP). With a single output layer, BERT achieves state-of-the-art performance in various tasks. It outperforms other models in natural language processing, including GLUE score, MultiNLI accuracy, and SQuAD v1.1 and v2.0 Test F1. BERT uses absolute position embeddings, and inputs are usually padded on the right. The model masks tokens during training to predict the original sentence and distinguish consecutive or unrelated sentences." We will be using the implementation on HuggingFace with the 'bert-base-uncased'. We will extract the first 512 tokens of an article and pass it through bert-base-uncased, and retrieve the vector output of the CLS token as BERT features for our classification model.
+
+\tododuke{Cite: Zhou \& Zafarani, Garg \% Sharma, Hornn \& Adali}
+\newsubsection{Feature --- Non-latent features} \label{section:non-latent-feat}
+From our literature review and survey, we are able to identify a significant amount of non-latent features. After combining features that are similar, and removing features which we cannot calculate due to the need for proprietary softwares (i.e. LIWC), or due to the computational complexity of the algorithms, or related reasons, we are able to identify 81 numerical features suitable for our experiments. After synthesising their categorisations in the original articles, we come up with a grouping of 7 main categories (with their abbreviation in brackets), with each feature being able to calculated with a few methods:
+\begin{itemize}
+    \item Diversity (div): number of unique words, or percentage of all unique words of a particular part of speech (e.g. noun, verb)
+    \item Quantity (quant): number of words, or percentage of all words of a particular part of speech or linguistic unit (e.g. noun, adjective, quote)
+    \item Sentiment (senti): number of linguistic features denoting sentiment (e.g. exclamation mark, all-cap words), or sentiment measurement (polarity, subjectivity)
+    \item Pronoun (pron): number of pronouns of a specific class (e.g. first person singular pronoun: I, me, my, mine)
+    \item Average (avg): average number of linguistic unit \texttt{a} per linguistic unit \texttt{b} (e.g. characters per word)
+    \item (Median) Syntax Tree Depth (med\_st): the median syntax tree depth of a given unit (e.g. median noun phrase syntax tree depth)
+    \item Readability (read): different readability indices (e.g. gunning-fog, coleman-liau)
+\end{itemize}
+
+\tododuke{MAYBE I COULD PUT THE EXCEL TABLE IN THE APPENDIX OF ALL FEATURES}
+
+% https://github.com/dukeraphaelng/ducknewsreporter/blob/main/src/non_latent_features.py
+The feature names are designated using the format "\texttt{category}\_\texttt{featureType}\_\texttt{calculationMethod}", where category is the abbreviated \texttt{category}, \texttt{featureType} is the feature type within the category, (due to page limitation, a complete table would not be provided here, but they are available in the docstring description for each category method here: [CITATION HERE]), and \texttt{calculationMethod} is \texttt{sum} when it is the count (i.e. number of) the respective feature, or the default method; it is \texttt{percent} when it is a percentage of all words or unique word in diversity, quantity, or pronoun. Figure \ref{box-plot} is a box plot of all the non-latent features by their scale of power of 10. The majority of features are between the range of $[10^{-2}, 10^{1}]$. Several quantity and some diversity features are in the higher range of $[10^2, 10^3]$. 
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{img/non_latent_box_plot.png}
+  \caption{Non Latent Box Plot Features}
+  \label{box-plot}
+\end{figure}
+
+We can then apply ANOVA on these non-latent features against the labels, and filter for those with a p-value less than the $\alpha$ significance level of 0.05. We identify that the removed features account to almost half of all features, and they include readability indices, the syntax tree depth features, and a few features from other categories, and diversity features are all below $\alpha$. We then apply Pearson correlation amongst the selected features and identify all correlation clusters. The matrix is available in Appendix \ref{appendix:correlation-matrx}. Afterwards, we can apply a selection method on the cluster where we remove all but one with the lowest p-value, specifically, we sort the selected features by p-value in ascending order with the lowest p at the front of the list, we then search for all features which have a correlation of at least $0.95$ and remove them from the current list, and continue until the end. Figure \ref{fig:non-latent-feat-prune} shows our results. After grouping them by their original category, we have the following counts, totalling to 29 features, which we will use for our classification models:
+\begin{itemize}
+    \item Diversity: 9 features
+    \item Quantity: 12 features
+    \item Pronoun: 2 features
+    \item Sentiment: 3 features
+    \item Average: 1 feature    
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{img/non_latent_feat_prune.png}
+  \caption{Non-Latent Feature Pruning}
+  \label{fig:non-latent-feat-prune}
+\end{figure}
+
 \newsubsection{Feature --- Similarity model}
 
-One of the core aspects of our research was the ability to automatically gather articles that give some context to each input article. Our approach summarizes the input article so it can be used to find contextual articles. These articles can then be used for comparison to the input article.
+\tododuke{I changed subsubsection* to subsubsection to label and reference them here}
+\tododuke{I think the order should be BERT -> non latent -> Similarity as this makes more sense}
+\tododuke{Explain the point of similarity model: Hypothesis - we hypothesize that articles that are real vs false are more dissimilar than articles that are both real. We assume context articles are real}
+\tododuke{i havent pulled in the latest changes yet, so Im not sure what Dhruv has written, but atm the report in the similarity section doesnt explain why we are doing this, whats our hypothesis, what we are doing to confirm it, and so on. ie we are expecting that the similarity metric makes a difference }
+The similarity model consists of two main components: scraping context articles for input article, and outputting a similarity metric for the pair. The first step involves \textbf{summary extraction} (Section \ref{section:summary-extraction}) of input articles into keywords, and perform \textbf{article scraping} (Section \ref{section:article-scraping}) using the associated keywords for context articles. The second step involves \textbf{article vectorisation} (Section \ref{section:article-vectorisation}) of the input-context article pair, and feeding them into different \textbf{similarity metrics} (Section \ref{section:similarity-metric}), choosing for one differentiates the Real and Fake distributions the most distinctly.
 
-\subsubsection*{Summary extraction}
+\tododuke{Not sure what to do with the commented-out paragraph below after adding above intro/summary}
+% One of the core aspects of our research was the ability to automatically gather articles that give some context to each input article. Our approach summarizes the input article so it can be used to find contextual articles. These articles can then be used for comparison to the input article.
+
+\subsubsection{Summary extraction} \label{section:summary-extraction}
 
 To get the context articles, we need to summarize the main topic of our input article down to at most 10 keywords. We use the Python \verb|gensim|~\cite{py-gensim} library which provides various topic modelling interfaces for text inputs. We use the \verb|ldamodel| which implements Latent Dirichlet Allocation (LDA) to extract a single topic. LDA is a probabilistic model where the idea is you have a number of documents representing some latent topics characterized by a distribution over words. By feeding in the preprocessed sentences of our input article, we are able to get the main themes. We sort the output keywords by the probability they represent the topic then cap the amount of words to 10 at most.
 
@@ -301,7 +354,7 @@ We will discuss the possibility of extracting better summaries using a more robu
   \label{summary-extraction}
 \end{table}
 
-\subsubsection*{Article scraping}
+\subsubsection{Article scraping} \label{section:article-scraping}
 
 We feed the summary of the input article into Google News and collect the top three articles. We use Google News since it essentially provides a free PageRank algorithm which we can leverage to get the most popular articles during the time period. We will treat the articles we find as Real articles for purposes of comparison, i.e.\ an input article that is very different to our contextual article is likely to be Fake.
 
@@ -330,17 +383,81 @@ For our research, we will only manually feed in all summaries for our dataset. O
 \noindent
 After gathering three URL links for each context article, we use the Python \verb|newspaper3k|~\cite{py-newspaper} library to download the article and automatically extract its title and content.
 
-\subsubsection*{Similarity model}
+% \subsubsection*{Similarity model}
+% Once we have context articles for each input article, we can apply a transformation on the two to obtain their vector representations (a process called article vectorisation), after which we can apply a metric on the two article vectors and output a numeric value representing the similarity between the two corresponding articles (a process which we call similarity metric calculation). We will now discuss different approaches to article vectorisation and similarity metric calculation.
 
-\tododuke{Write}
+\subsubsection{Article vectorisation} \label{section:article-vectorisation}
+\tododuke{Cite one more article here that also does the same similarity metric calculation}
+\tododuke{Future work: vectorise the title and not just the body}
+\tododuke{Future work: detect similarity between body and title pair}
+Alsuliman, et. al propose two different ways to vectorise the articles: TF-IDF, word2vec \cite{alsuliman2022social}. In addition to these two vectorisation methods, we propose a third - 'non-latent vectoriser'. Vectorisation methods will now be inspected in close details.
 
-\newsubsection{Feature --- Non-latent features}
+% https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfTransformer.html#:~:text=The%20formula%20that%20is%20used,document%20frequency%20of%20t%3B%20the
+\textbf{TF-IDF}, which stands for term frequency times inverse document frequency, is a 'common term weighting scheme in information retrieval' \cite{scikit-learn}. The formula given as follows:
 
-\tododuke{Write}
+\[\frac{article.count(term)}{len(article)} * log_2(\frac{len(articles)}{df(articles, term)} + 1)\]
 
-\newsubsection{Feature --- BERT embeddings}
+The first term is the term frequency, and the second term is the inverse document frequency, where \texttt{article} is the article we are applying TF-IDF on, \texttt{article.count(term)} is the frequency of \texttt{term} in \texttt{article}, \texttt{len(article)} is the number of words in the article, \texttt{len(articles)} is the number of articles, \texttt{df(articles, term)} is the document frequency of \texttt{term} in our \texttt{articles} dataset, or the number of articles that contains this term  \cite{scikit-learn}. The formula given has a '+1' term in idf so that the algorithm would not ignore terms that appear in all articles, this is the \texttt{sklearn} implementation and differs from the standard textbook formula which has the '+1' in the denominator in log2 of idf  \cite{scikit-learn}. TF-IDF will be fitted on the original dataset of input articles (for \texttt{articles} in IDF term), then be used as vectorize to transform both the input and context articles. We will apply TF-IDF in two n-gram ranges of (1,1) and (1,2).
 
-\tododuke{Write}
+\tododuke{ChatGPT}
+\tododuke{Cite: https://radimrehurek.com/gensim/models/word2vec.html}
+\tododuke{Cite: https://code.google.com/archive/p/word2vec/}
+\tododuke{Cite Alsuliman or the article that pioneered the use of document vec as the average vec in this case}
+\textbf{Word2Vec}, "a popular word embedding technique, represents words in a vector space to capture semantic similarities. Introduced by researchers at Google in 2013, it uses CBOW and Skip-gram architectures to learn embeddings from large text corpora. CBOW predicts target words from context, while Skip-gram predicts context from targets. The model optimizes to make similar words closer in vector space (ChatGPT)". We will be using the gensim implementation of word2vec using the pretrained 'word2vec-google-news-300' model which is trained on the Google News dataset of about 100 billion words containing 3 million words and phrases in 300 dimensions. We chose this model due to the similarity between the domain of its dataset and out dataset being news. To calculate the article vector, we retrieve the vector of every single word in an article, existing those that do not exist in the embeddings, and then taking the average from the list. The calculation of the article vector follows the work of Alsuliman et al.
+
+\textbf{Non-Latent Vectorizer}
+The non-latent vectorizer uses the non-latent feature selected in Section \ref{section:non-latent-feat} and apply them on an article into a vector. This is the non-latent vector presentation of the respective article.
+
+\subsubsection{Similarity metric calculation} \label{section:similarity-metric}
+\tododuke{Future work: learn a model instead of using metrics.}
+
+Alsuliman et al. proposes three different metrics to calculate the similarity between two documents: cosine distance, word appearance (word app), matching score \cite{alsuliman2022social}. In addition, we also propose a third metric being the harmonic mean of the three, to harmonise any statistical difference and incorporate all distributional differences between the measures. The formula for each metric will now be discussed:
+
+\tododuke{CosineDist: cite: https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cosine.html}
+\tododuke{CosineDist: cite: https://scikit-learn.org/stable/modules/metrics.html}
+
+\noindent \textbf{Cosine distance} is calculated as one minus the cosine similarity of two vectors $u$ and $v$. The cosine similarity is the cosine of the angle between the two vectors (calculated as the dot product of $u$ and $v$) divided by the product of the Euclidean L2 norm of the two vectors to scale the range to [0, 1]. Lower values denote higher similarity between the two vectors, and vice versa. The formula is given as follows:
+\[ 1 - \frac{u \cdot v}{\lVert u \rVert \lVert v \rVert}\]
+\textbf{Word app} is calculated as the number of unique common words between the prediction and the context articles divided by the number of unique words in the context article. Given that \texttt{$input_{unique}$} is the set of unique words in the input document, \texttt{$context_{unique}$} is the set of unique words in the context document. The formula is as follows:
+\[\frac{\left|input_{unique} \cap context_{unique}\right|}{\left|context_{unique}\right|}\]
+\textbf{Matching score} is calculated as the sum of the unique common words between the prediction and the context article vectorized, divided by the sum of the vectorized unique words in the context article. Given that \texttt{$input_{unique}$} is the set of unique words in the input document, \texttt{$context_{unique}$} is the set of unique words in the context document, and \texttt{sumvec(x)} is a function which vectorises the set of words $x$ and sums up all the dimensions, the formula is as follows:
+\[\frac{sumvec(input_{unique} \cap context_{unique})}{sumvec(context_{unique})}\]
+\textbf{Harmonic mean} of n variables is given by the following formula:
+\[H(x_1, x_2, ... x_n) = \frac{n}{\sum^n_{i=1}\frac{1}{x_i}}\]
+When $n = 3$, $x_1 = c$ is the cosine distance, $x_2 = w$ is the word app, and $x_3 = m$ is the matching score, we have the following formula:
+\[H = \frac{n}{\frac{1}{c} + \frac{1}{w} + \frac{1}{m}}\]
+
+All these metrics are between the range of [0, 1]. Higher values for matching score and word app denote higher similarity, and vice verse. This is the opposite for cosine distance. Since we scrape up to three context articles per input article, we can apply \textbf{similarity metric smoothing} by calculating the similarity metric for the input article as the average of the similarity between the input article and each of the context article to reduce variance.
+
+\subsubsection{Similarity metric selection}
+\tododuke{Not sure if this graph should be horizontal or verticle, try horizontal graph with bigger text}
+\tododuke{TF-idf 1-1 missing right ) bracket}
+\begin{wrapfigure}{R}{0.5\textwidth}
+\vspace*{-20pt}
+\centering
+\includegraphics[width=0.5\textwidth]{img/textual_relevance_2.png}
+\caption{Textual Relevance}
+\label{similarity-metrics}
+\end{wrapfigure}
+Since we have different similarity metrics, we ought to compare them and select for the one that helps differentiate the \texttt{REAL} and the \texttt{FAKE} articles the best. We will use three methods to aid our selection: $\delta \mu$, Jensen-Shannon Divergence, and ANOVA.
+
+\textbf{$\delta \mu$}, or the difference between the mean of \texttt{REAL} and \texttt{FAKE} articles is a very naive and simplistic measure to compare how differentiated the two distributions are. This measure does not remedy the behaviour of outliers which might significantly shift the mean of the distributions. It also ignores the variance of the distributions. However, it is still a numerically simple metric which would aid us when the distributions are well-formed.
+
+\tododuke{rewrite this}
+\textbf{Jensen-Shannon Divergence} "(JSD) is a symmetric version of the Kullback-Leibler Divergence (KL Divergence) used to compare probability distributions. It quantifies dissimilarity between two distributions P and Q. Calculated as (1/2) * KL(P || M) + (1/2) * KL(Q || M), where KL(P || M) and KL(Q || M) are KL Divergences from P and Q to the average distribution M. JSD ranges from 0 to 1; 0 means identical distributions, and 1 means maximally dissimilar. Valuable in information retrieval, natural language processing, and clustering, JSD aids in analyzing and modeling tasks that involve comparing probability distributions (ChatGPT)"
+
+\tododuke{rewrite this}
+\textbf{ANOVA}", which stands for Analysis of Variance, and it is a statistical method used to compare the means of multiple groups to determine if there are significant differences between them. The basic idea behind ANOVA is to decompose the total variance in the data into two components: variance between the group means (due to differences between groups) and variance within the groups (due to individual variability and random error). If the variance between the group means is significantly larger than the variance within the groups, it suggests that there are significant differences among the groups' means. We will be using a specific type of ANOVA called one-way repeated measure ANOVA, where you have one independent categorical variable (in this case our label of \texttt{REAL} and \texttt{FAKE}), and several dependent continous variables (in this case our similarity metrics) 'to test for any statistically significant difference between the means of the dependent variables among the groups defined by the independent variable, to reject the null hypothesis that the group means(\texttt{FAKE} and \texttt{REAL}) are equal'.
+
+\subsubsection{Results: similarity metrics}
+\tododuke{I can shorten this section if necessary}
+We will now discuss our similarity metrics comparison result on table \ref{similarity-metrics}. A good metric should have the fake (in red) and the real (in green) distributions be somewhat well separated. The brown area indicates the overlapping region. Non-latent Cosine Distance is the worst metric with $0 \delta \mu$, $0.02 JSD$, and $6.10e-01 p$, where the two \texttt{FAKE} and \texttt{REAL} distributions are overlapping each other almost at the same point. Word2vec Cosine Distance and TF-IDF(1-1) also perform quite poorly with $\delta \mu$ of 0.03 and 0.05, JSD of 0.02 and 0.06, and p-value of 1.74e-03 and 2.38e-02 respectively. Both these plots have the \texttt{REAL} distribution shifted further to the right but the distributions still overlap significantly, unlike the Non-Laten Cosine Distance, however, these metrics fall below the typical significance level $\alpha$ of 0.05. Although TF-IDF (1-2) Cosine Distance has a similar $\delta \mu$ and JSD of 0.06 and 0.08 respectively, its p-value is markedly low at 2.81e-05. Word App follows a similar pattern where TF-IDF (1-1) and (1-2) produce distinctly different results of 5.17e-05 and 1.63e-02 in p-value, but similar $\delta \mu$ of 0.13 and JSD of 0.22 and 0.23 respectively. We can conclude that the ngram-range of TF-IDF definitely contribute to marked differences in the metrics output. Matching score metrics have similar $\delta \mu$ of 0.12 and JSD range of [0.23, 0.28] with low p-values of 2.81e-05 and 6.11e-05 respectively. The most significant features however are the harmonic mean, combining the previous metrics, with TF-IDF (1-1) at $\delta \mu = 0.14, JSD = 0.24, p = 1.08e-05$ and TF-IDF (1-2) at $\delta \mu = 0.14, JSD = 0.17, p = 1.11e-05$. Since TF-IDF (1-1) yields more difference between the distributions, we will use this as our definitive similarity metric.
+
+% \begin{figure}[H]
+%   \centering
+%     \includegraphics[width=\textwidth]{img/textual_relevance.png}
+%     \caption{Textual Relevance}
+% \end{figure}
 
 \newsubsection{Normalization and scaling}
 
@@ -555,6 +672,13 @@ In the future research could be done to provide an automated API for scraping wh
   \end{tabular}
   \caption{Articles we were not able to find context articles for.}
 \end{table}
+
+\newsection{Non-latent Feature Pearson Correlation Matrix}\label{appendix:correlation-matrx}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{img/non_latent_corr_matrx.png}
+  \caption{Non-Latent Correlation Matrix}
+\end{figure}
 
 \newsection{Machine learning}\label{apppendix:machine-learning}
 
