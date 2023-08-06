@@ -182,7 +182,7 @@
 
 \todoany{Describe the problem domain and aim of study, briefly introduce the developed methods and summarise your experimental findings}
 
-As the distribution of news shifts towards social media, there is a rise in the dissemination of fake news. We define fake news as the creation of information presented as legitimate journalism that describes a fictitious event or fabricates details of an event in an attempt to mislead readers. This phenomenon became a major focal point in journalism during the 2016 US elections with political parties labelling many publications and articles as fake news. There are two huge issues with how this occurred in 2016
+As the distribution of news shifts towards social media, there is a rise in the dissemination of fake news. We define fake news as the creation of information presented as legitimate journalism that describes a fictitious event or fabricates details of an event in an attempt to mislead readers. This phenomenon became a major focal point in journalism during the 2016 US elections with political parties labelling many publications and articles as fake news. There are two huge issues with how this occurred in 2016:
 
 \begin{enumerate}
   \item Many prominent political figures highlighted any news they disagreed with as fake news. This led to the political isolation of the party, whereby any news that looked at them unfavourably had the potential to be dismissed as fake news This reduced the accountability of political figures in the US, a country where federal legislation has a sweeping impact across the country and the rest of the world.
@@ -193,7 +193,7 @@ Since then, there have been many attempts to introduce ways to deal with these i
 
 There are also many automated fake news detection algorithms which rely on linguistic features of the text, comparisons between the title of the article and its content, the medium of transmission, and any suspicious activity linked with its engagement online. These tools have become more effective since COVID and Twitter employs its own automated algorithms to automatically label articles about certain topics it chooses as fake news. However, these tools are known to be very unreliable as it is increasingly common for fake news to read the same way as real news articles and be shared by humans.
 
-Therefore, in order for fake news detection to become more widespread and effective in combating fake news, there are a few different criteria it must fulfil
+Therefore, in order for fake news detection to become more widespread and effective in combating fake news, there are a few different criteria it must fulfil:
 
 \begin{enumerate}
   \item The algorithms need to automatically classify news as real or fake so that they can scale with the growth of social media and the increase in fake news dissemination.
@@ -458,11 +458,13 @@ Figure~\ref{similarity-metrics} shows our results with similarity metrics compar
 
 We experimented with different feature normalisation techniques across the entire dataset and for specific features. Normalisation was conducted columnwise for each feature so that each feature was normalised individually.
 
-MinMaxScaler was used for features where there was a clear range of values in order to convert these values into the range of 0-1. This was not implemented frequently across our features as they did not have a fixed range of values making this technique ineffective.
+\begin{quote}
+  \textbf{MinMaxScaler:}\quad This was used for features where there was a clear range of values in order to convert these values into the range of 0-1. This was not implemented frequently across our features as they did not have a fixed range of values making this technique ineffective.
 
-StandardScaler was primarily used for linguistic features and as they did not have a clear range. This technique works by finding the Z-score for each value within the feature where $\text{Z-score} = \frac{X - \mu}{\sigma}$. This is done by first calculating the mean and standard deviation of the feature and then transforming each value into its Z-score.
+  \textbf{StandardScaler:}\quad This was primarily used for linguistic features that did not have a clear range. This technique works by finding the Z-score for each value within the feature where $\text{Z-score} = \frac{X - \mu}{\sigma}$. This is done by first calculating the mean and standard deviation of the feature and then transforming each value into its Z-score.
 
-RobustScaler was also experimented with in place of StandardScaler for values prone to outliera. This was done as RobustScaler uses $\text{IQR} = \text{Q3} - \text{Q1}$ instead of the standard deviation in the transformation calculation from StandardScaler. This is used because standard deviation is highly affected by outlier values and this was noticeable in features such as word count context articles.
+  \textbf{RobustScaler:}\quad We experimented with this in place of StandardScaler for values prone to outliers. This was done as RobustScaler uses $\text{IQR} = \text{Q3} - \text{Q1}$ instead of the standard deviation in the transformation calculation from StandardScaler. This is used because standard deviation is highly affected by outlier values and this was noticeable in features such as word count context articles.
+\end{quote}
 
 Ultimately, after each scaling technique was applied and the classification was conducted, the results with each type of normalisation and various combinations of them underperformed compared to the original dataset without normalisation. There are a few different reasons why this was the case but after testing various classification models, the most probable reasons are the small size of the dataset used and the lack of appropriate scaling methods available for the linguistic features that rely on counting. Due to this, we decided not to use normalisation for our results.
 
