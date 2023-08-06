@@ -49,6 +49,7 @@
 \usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
 \newcommandx{\todoany}[2][1=]{\todo[inline,#1]{[\sectionlabel{}]~#2}}
 \newcommandx{\todojim}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,inline,#1]{[\sectionlabel{}]~\textbf{Jim}:~#2}}
+\newcommandx{\gtodojim}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{[\sectionlabel{}]~\textbf{Jim}:~#2}}
 \newcommandx{\tododuke}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=blue,inline,#1]{[\sectionlabel{}]~\textbf{Duke}:~#2}}
 \newcommandx{\gtododuke}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=blue,#1]{[\sectionlabel{}]~\textbf{Duke}:~#2}}
 \newcommandx{\tododhruv}[2][1=]{\todo[linecolor=green,backgroundcolor=green!25,bordercolor=green,inline,#1]{[\sectionlabel{}]~\textbf{Dhruv}:~#2}}
@@ -192,6 +193,8 @@
 
 \tododhruv{Add intro citations}
 
+\gtododhruv{Please add some citations to the introduction}
+
 As the distribution of news shifts towards social media, there is a rise in the dissemination of fake news. We define fake news as the creation of information presented as legitimate journalism that describes a fictitious event or fabricates details of an event in an attempt to mislead readers. This phenomenon became a major focal point in journalism during the 2016 US elections with political parties labelling many publications and articles as fake news. There are two huge issues with how this occurred in 2016:
 
 \begin{enumerate}
@@ -290,8 +293,8 @@ After preprocessing, tokens are then generated based on any whitespace and punct
   \label{preprocessing}
 \end{table}
 
-\newsubsection{Feature --- BERT embeddings}
-BERT (Bidirectional Encoder Representations from Transformers) is a language representation model proposed by Devlin et al \cite{bert}. It is pretrained on BookCorpus and the English Wikipedia using masked language modeling (MLM) and next sentence prediction (NSP). MLM masks some of the input tokens with a training objective to predict the masked token simply based on context, and the model also concatenates two sentences with 50\% chance of being neighbouring sentences, and the model is pre-trained in the NSP layer to predict if the two are indeed neighbours \cite{bert}. BERT obtains SOTA results on several tasks and is suitable for representing document and textual data. Hence, we will be using BERT as the main feature to encode our articles. We will use HuggingFace's 'bert-base-uncased' pretrained model which trains on uncased data. To encode an article, we slice the first 512 tokens of the respective article and pass it through 'bert-base-uncased' and output the CLS token's vector as BERT features for our classification model.
+\newsubsection{Feature --- BERT embeddings}\label{section:bert}
+BERT (Bidirectional Encoder Representations from Transformers) is a language representation model proposed by Devlin et al \cite{bert}. It is pretrained on BookCorpus and the English Wikipedia using masked language modeling (MLM) and next sentence prediction (NSP). MLM masks some of the input tokens with a training objective to predict the masked token simply based on context, and the model also concatenates two sentences with 50\% chance of being neighbouring sentences, and the model is pre-trained in the NSP layer to predict if the two are indeed neighbours \cite{bert}. BERT obtains SOTA results on several tasks and is suitable for representing document and textual data. Hence, we will be using BERT as the main feature to encode our articles. We will use HuggingFace's 'bert-base-uncased' pretrained model which trains on uncased data. To encode an article, we slice the first 512 tokens of the respective article and pass it through 'bert-base-uncased' and output the CLS token's vector as BERT features for our classification model. The plot in Appendix \ref{appendix:word-count-histogram} shows the length distribution of the articles. We can see that input articles and context articles have means of 1090.58 and 1827.29 repsectively, with 50\% percentile being 583 and 1032 respectively. This means that the input token size of 512 for BERT cannot encode a significant amount of textual information in an article. However, we hypothesis that the 'fake news' quality of an article is at the minimum visible at a range of 512 tokens. In addition, any information not visible in this range will be captured by \textbf{non-latent features} or \textbf{similarity metrics}.
 
 \newsubsection{Feature --- Non-latent features} \label{section:non-latent-feat}
 
@@ -313,7 +316,7 @@ From our literature review and survey, we are able to identify a significant amo
   \item Readability (read): different readability indices (e.g. gunning-fog, coleman-liau)
 \end{itemize}
 
-The feature names are designated using the format "\texttt{category}\_\texttt{featureType}\_\texttt{calculationMethod}", where category is the abbreviated \texttt{category}, \texttt{featureType} is the feature type within the category. Appendix \ref{appendix:non-latent-table} contains a full description and explanation of all non-latent features, their category, feature type, and their calculation method. Figure \ref{box-plot} is a box plot of all the non-latent features by their scale of power of 10. The majority of features are between the range of $[10^{-2}, 10^{1}]$. Several quantity and some diversity features are in the higher range of $[10^2, 10^3]$.
+The feature names are designated using the format "\texttt{category}\_\texttt{featureType}\_\texttt{calculationMethod}", where category is the abbreviated \texttt{category}, \texttt{featureType} is the feature type within the category. Appendix \ref{appendix:non-latent-table} contains a full description and explanation of all non-latent features, their category, feature type, and their calculation method. Figure \ref{box-plot} is a box plot of all the non-latent features by their scale of power of 10. The majority of features are between the range of $[10^{-2}, 10^{1}]$. Several quantity and some diversity features are in the higher range of $[10^2, 10^3]$. \gtododuke{We can move parts of this section here and below minus the ANOVA methodology to Non-Latent Results}
 
 \begin{figure}[h]
   \centering
@@ -397,7 +400,6 @@ After gathering three URL links for each context article, we use the Python \ver
 % Once we have context articles for each input article, we can apply a transformation on the two to obtain their vector representations (a process called article vectorisation), after which we can apply a metric on the two article vectors and output a numeric value representing the similarity between the two corresponding articles (a process which we call similarity metric calculation). We will now discuss different approaches to article vectorisation and similarity metric calculation.
 
 \subsubsection{Article vectorisation} \label{section:article-vectorisation}
-\tododuke{Cite one more article here that also does the same similarity metric calculation}
 Past research by Alsuliman, et. al in~\cite{alsuliman2022social} proposes two different ways to vectorise the articles: TF-IDF, and Word2Vec. In addition to these two vectorisation methods, we propose a third -- \emph{``non-latent vectoriser''}.
 
 \begin{quote}
@@ -411,12 +413,10 @@ Past research by Alsuliman, et. al in~\cite{alsuliman2022social} proposes two di
   % gensim, alsuliman2022social
   % https://radimrehurek.com/gensim/models/word2vec.html
   % https://code.google.com/archive/p/word2vec/
-  \tododuke{Cite Alsuliman or the article that pioneered the use of document vec as the average vec in this case}
   \textbf{Word2Vec~\cite{word2vec-google}:}\quad A word embedding architecture introduced by Google in 2013. It uses continous bag-of-words (CBOW), which uses neighbouring words to predict target words, and continuous skip-gram which uses target words to predict the neighbouring words, using either hierarchical softmax or negative sampling \cite{gensim} \cite{mikolov2013efficient}. We will be using the gensim implementation of word2vec using the pretrained 'word2vec-google-news-300' model which is trained on the Google News dataset of about 100 billion words containing 3 million words and phrases in 300 dimensions. We chose this model due to the similarity between the domain of its dataset and out dataset being news. To calculate the article vector, we retrieve the vector of every single word in an article, existing those that do not exist in the embeddings, and then taking the average from the list \cite{alsuliman2022social}.
 
   \textbf{Non-Latent Vectorizer:}\quad The non-latent vectorizer uses the non-latent feature selected in Section \ref{section:non-latent-feat} and apply them on an article into a vector. This is the non-latent vector presentation of the respective article.
 \end{quote}
-
 
 \subsubsection{Similarity metric calculation} \label{section:similarity-metric}
 
@@ -442,10 +442,12 @@ Past research by Alsuliman et al. in~\cite{alsuliman2022social} proposes three d
 
 All these metrics are between the range of [0, 1]. Higher values for matching score and word app denote higher similarity, and vice verse. This is the opposite for cosine distance. Since we scrape up to three context articles per input article, we can apply \emph{similarity metric smoothing} by calculating the similarity metric for the input article as the average of the similarity between the input article and each of the context article to reduce variance.
 
-\subsubsection{Similarity metric selection}
-\tododuke{Not sure if this graph should be horizontal or verticle, try horizontal graph with bigger text, TF-IDF 1-1 missing right ) bracket}
+\subsubsection{Similarity metric selection}\label{section:similarity-metric-selection}
+\tododuke{Not sure if this graph should be horizontal or verticle, try horizontal graph with bigger text}
 
 Since we have different similarity metrics, we ought to compare them and select for the one that helps differentiate the \texttt{REAL} and the \texttt{FAKE} articles the best. We will use three methods to aid our selection: $\delta \mu$, Jensen-Shannon Divergence, and ANOVA.
+
+\textbf{$\delta \mu$}, or the difference between the mean of \texttt{REAL} and \texttt{FAKE} articles is a very naive and simplistic measure to compare how differentiated the two distributions are. This measure does not remedy the behaviour of outliers which might significantly shift the mean of the distributions. It also ignores the variance of the distributions. However, it is still a numerically simple metric which would aid us when the distributions are well-formed.
 
 \begin{wrapfigure}{R}{0.5\textwidth}
   % \vspace*{-20pt}
@@ -455,16 +457,13 @@ Since we have different similarity metrics, we ought to compare them and select 
   \label{similarity-metrics}
 \end{wrapfigure}
 
-\textbf{$\delta \mu$}, or the difference between the mean of \texttt{REAL} and \texttt{FAKE} articles is a very naive and simplistic measure to compare how differentiated the two distributions are. This measure does not remedy the behaviour of outliers which might significantly shift the mean of the distributions. It also ignores the variance of the distributions. However, it is still a numerically simple metric which would aid us when the distributions are well-formed.
-
 \textbf{Jensen-Shannon Divergence (JSD)~\cite{scipy}} is based on the Kullback-Leibler Divergence (KL Divergence) to measure the similarity of two probability distributions. It is symmetric, positive, and in the range of [0, 1] with values closer to 0 denoting more similar distributions and closer to 1 more dissimilar distributions. This is a value we hope to maximise. It is given by the formula:
 \[\sqrt{\frac{D(p \parallel m) + D(q \parallel m)}{2}}\]
 $D$ is the KL Divergence and $m$ is the \emph{``point-wise mean of p and q''} \cite{scipy}.
 
 \textbf{ANOVA (Analysis of Variance)} is a statistical method to determine if there are significant differences between the means of groups \cite{anova}. We will be performing one-way repeated measure ANOVA which test for any significant difference between the means of the dependent variables (our non-latent features) among the groups defined by the independent variable (our label of \texttt{REAL} and \texttt{FAKE}) to reject the null hypothesis that the group means(\texttt{FAKE} and \texttt{REAL}) are equal. We reject this hypothesis when the p-value associated with the f-statistic of the respetive feature is below the significant level $\alpha = 0.05$.
 
-\subsubsection{Comparison Results}
-\tododuke{I can shorten this section if necessary}
+\subsubsection{Comparison Results} \label{section:similarity-results}
 Figure~\ref{similarity-metrics} shows our results with similarity metrics comparison. A good metric should have the fake (in red) and the real (in green) distributions be somewhat well separated. The brown area indicates the overlapping region. Non-latent Cosine Distance is the worst metric with $0 \delta \mu$, $0.02 JSD$, and $6.10e-01 p$, where the two \texttt{FAKE} and \texttt{REAL} distributions are overlapping each other almost at the same point. Word2vec Cosine Distance and TF-IDF(1-1) also perform quite poorly with $\delta \mu$ of 0.03 and 0.05, JSD of 0.02 and 0.06, and p-value of 1.74e-03 and 2.38e-02 respectively. Both these plots have the \texttt{REAL} distribution shifted further to the right but the distributions still overlap significantly, unlike the Non-Latent Cosine Distance, however, these metrics fall below the typical significance level $\alpha$ of 0.05. Although TF-IDF (1-2) Cosine Distance has a similar $\delta \mu$ and JSD of 0.06 and 0.08 respectively, its p-value is markedly low at 2.81e-05. Word App follows a similar pattern where TF-IDF (1-1) and (1-2) produce distinctly different results of 5.17e-05 and 1.63e-02 in p-value, but similar $\delta \mu$ of 0.13 and JSD of 0.22 and 0.23 respectively. We can conclude that the ngram-range of TF-IDF definitely contribute to marked differences in the metrics output. Matching score metrics have similar $\delta \mu$ of 0.12 and JSD range of [0.23, 0.28] with low p-values of 2.81e-05 and 6.11e-05 respectively. The most significant features however are the harmonic mean, combining the previous metrics, with TF-IDF (1-1) at $\delta \mu = 0.14, JSD = 0.24, p = 1.08e-05$ and TF-IDF (1-2) at $\delta \mu = 0.14, JSD = 0.17, p = 1.11e-05$. Since TF-IDF (1-1) yields more difference between the distributions, we will use this as our definitive similarity metric.
 
 % \begin{figure}[H]
@@ -705,7 +704,7 @@ Table \ref{machine-learning-results} shows the results for the four machine lear
 
 \todoany{Summarise the study and discuss directions for future improvement}
 
-\newsubsection{Limitations}
+\newsubsection{Limitations and Future Work}
 
 \todoany{Convert list of limitations to subsubsections with discussion.}
 
@@ -717,14 +716,22 @@ While our preprocessing was quite generic for NLP tasks, we believe there were a
   \item The \verb|nltk| lemmatizer required manually specifying the part of speech to work. This caused some verbs to be incorrectly lemmatized. We could have used a different library that extracted the POS automatically. Alternatively we could have investigated not lemmatizing at all to maintain proper structure for non-latent features and BERT embeddings.
 \end{itemize}
 
-This research would have really benefitted from less or no preprocessing at all. For all our features, there could be an argument where no preprocessing would have been better. For example summary extraction or BERT features could have learnt meaning from the unfiltered text. This could be investigated for future research to strengthen our features.
+This research would have really benefited from less or no preprocessing at all. For all our features, there could be an argument where no preprocessing would have been better. For example summary extraction or BERT features could have learnt meaning from the unfiltered text. This could be investigated for future research to strengthen our features.
+
+\subsubsection*{BERT Features}\label{limitation:bert-features}
+In this research, we have used the last layer hidden state of the CLS token (processed by Linear layer with Tanh activation) to encode the features as BERT features due to its common usage as a common feature for classification \cite{huggingface-transformer}. However, the HuggingFace transformer documentation has also mentioned that this output is not necessarily a 'good summary of the semantic content of the input', and suggests applying pooling or averaging the sequence of hidden-states for the entire input \cite{huggingface-transformer}. In addition, we can also use the fully connected layers on top of the frozen BERT, which is the typical approach for textual classification. These are things that we could experiment with to improve our BERT features input.
+
+Moreover, our research assumes the hypothesis of the 'fakenews'-ness visibility within 512 tokens of an article. However, we could conduct our experiments with LongFormer to test for our hypothesis and for any further improvement.
+
+\subsubsection*{Non-Latent Features}\label{limitation:non-latent-features}
+Our non-latent feature extraction pipeline currently applies on the content of the article. However, we could easily use the same procedure to detect for any features which would significantly differentiate between the \texttt{REAL} and the \texttt{FAKE} distributions in the title of the articles. Past research has also applied feature extraction method on the title of articles, and our model would benefit from any important features.
 
 \subsubsection*{Summary extraction}\label{limitation:summary-extraction}
 
-Our summary extraction extracted most of the correct meaning from the text. However two main issues remained causing it to produce in-perfect results:
+Our summary extraction extracted most of the correct meaning from the text. However two main issues remained causing it to produce imperfect results:
 \begin{itemize}
   \item Words would be unordered and if read together in a sentence, wouldn't make sense to a human.
-  \item \emph{Junk} such as connectives would be left in the summary.
+  \item \emph{Junk} such as connectives would be left in the summary. \gtodojim{Can't we just use spaCy or NLTK to look for all connectives (with the specific POS tags) and remove them? we can also use stop words to remove them, in that case we can add these things as future work, ie to refine the algorithm.}
 \end{itemize}
 
 We believe future research could have looked into better tuned models that synthesized higher quality topic sentences. In our research, there were very few but we believe in particular a summary extractor trained on long-form news articles would have performed better. In addition, we could have also included the title since semantically, the title is supposed to tell the reader what the rest of the article is about.
@@ -739,6 +746,14 @@ For Real labelled articles, we believe an improvement on the summary extractor r
 \end{quote}
 This event never happened and consequently, we could not find any contextual articles about it. For our research, we skipped articles with no context. We believe one way to resolve this is to include the article with no similarity score or a low one. More research needs to be done into whether mixed articles with and without a similarity can perform well together especially considering in the real world, this is definatly an issue.
 
+\subsubsection*{Article vectorisation}\label{limitation:article-vectorisation}
+Similar to \ref{limitation:non-latent-features}, for future work, we can construct a non-latent vectoriser from the title of the articles, and perform ANOVA on this vectoriser applied on the input article against the context articles. It is likely however that the non-latent 'title' vectoriser might yield a p-value higher than the significance threshold, since this is the case with the non-latent 'body' vectoriser.
+
+\subsubsection*{Similarity metric calculation}\label{limitation:similarity-metric}
+For our similarity metric measure, we could also build a simple classifier which takes an input article and context article, and output a similarity measure, and maximising the output if the input article is \texttt{REAL} and minimising the output if it is \texttt{FAKE}.
+
+In addition, we also have a hypothesis that \texttt{REAL} articles have a higher level of semantic similarity between the content and the title. We can vectorise the pair, and then apply similarity metric measures on them and repeat the same methodology as outlined in Section \ref{section:article-vectorisation}, \ref{section:similarity-metric}, \ref{section:similarity-metric-selection}.
+
 \subsubsection*{Dataset}
 
 For the scope of our research, we used a fairly small dataset to present our contributions to contextual article scraping. However, this dataset only concentrated on the political events surrounding the 2016 United States election. This causes two main problems for our model:
@@ -748,12 +763,6 @@ For the scope of our research, we used a fairly small dataset to present our con
 \end{itemize}
 
 In the future research could be done to provide an automated API for scraping which would have allowed for a much larger dataset to be used that covers multiple world events across different years. Along with this, masking out event specific words could have been done to reduce learning of event specifics.
-
-\newsubsection{Future work}
-\tododuke{Talk about doing average pooling of the entire output for future work instead of just using the CLS token}
-\tododuke{Future work: vectorise the title and not just the body (non-latent + similarity)}
-\tododuke{Future work: detect similarity between body and title pair (similarity)}
-\tododuke{Future work: learn a model instead of using metrics (similarity)}
 
 \cleardoublepage
 \pagebreak
@@ -778,7 +787,7 @@ In the future research could be done to provide an automated API for scraping wh
     \midrule
     Dhruv & \\
     \midrule
-    Duke & \\
+    Duke & \shortstack{article vectorisation \\ similarity metric calculation \& selection \\ similarity comparison result \\ non-latent features \\ EDA}\\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -796,8 +805,9 @@ In the report Jim contributed to the Sections~\ref{section:preprocessing}, \ref{
 \tododhruv{$\sim$1pg detailing individual contributions}
 
 \subsection{Duke}
+Duke contributed to the project particularly in the sections of non-latent features, and similarity model (article vectorisation, similarity metric calculation, similarity metric selection, comparison results) and the EDA (exploratory data analysis) notebook, and the associated code and plots. At the start of the project, Duke contributed to the similarity model (article vectorisation, similarity metric calculation). Towards the end of the project, Duke contributed to the similarity model (similarity metric selection, comparison results), and the methodology and results for non-latent feature extraction and analysis, as well as the EDA.
 
-\tododuke{$\sim$1pg detailing individual contributions}
+In the project proposal, Duke contributed equally with the team. In the literature review, Duke reviewed the literature on datasets, features, evaluation, and model performance in fake news detection. In the project demo, Duke contributed mainly to the features section (BERT, Non-latent, Similarity metrics). In the report, Duke contributed to Sections \ref{section:bert}, \ref{section:non-latent-feat}, \ref{section:article-vectorisation}, \ref{section:similarity-metric}, \ref{section:similarity-metric-selection}, \ref{section:similarity-results}, and BERT, non-latent features and similarity metrics section in results and limitations, and Appendices \ref{appendix:word-count-histogram}, \ref{appendix:non-latent-table}, \ref{appendix:correlation-matrx}.
 
 \newsection{Article scraping}\label{appendix:article-scraping}
 
@@ -818,6 +828,19 @@ In the report Jim contributed to the Sections~\ref{section:preprocessing}, \ref{
   \end{tabular}
   \caption{Articles we were not able to find context articles for.}
 \end{table}
+
+\newsection{Word Count Histogram}\label{appendix:word-count-histogram}
+\begin{figure}[H]
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{img/word_count_context_hist.png}
+\end{subfigure}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{img/word_count_input_hist.png}
+\end{subfigure}%
+\caption{Word Count Histogram of Input and Context Articles}
+\end{figure}
 
 \newsection{Non-Latent Features}\label{appendix:non-latent-table}
  \begin{longtable}[c]{| >{\centering\arraybackslash}p{.2\textwidth} | >{\centering\arraybackslash}p{.3\textwidth} | >{\centering\arraybackslash}p{.13\textwidth} | >{\centering\arraybackslash}p{.25\textwidth} |}
