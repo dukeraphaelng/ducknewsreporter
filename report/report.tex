@@ -184,8 +184,8 @@
 As the distribution of news shifts towards social media, there is a rise in the dissemination of fake news. We define fake news as the creation of information presented as legitimate journalism that describes a fictitious event or fabricates details of an event in an attempt to mislead readers. This phenomenon became a major focal point in journalism during the 2016 US elections with political parties labelling many publications and articles as fake news. There are two huge issues with how this occurred in 2016
 
 \begin{enumerate}
-    \item Many prominent political figures highlighted any news they disagreed with as fake news. This led to the political isolation of the party, whereby any news that looked at them unfavourably had the potential to be dismissed as fake news This reduced the accountability of political figures in the US, a country where federal legislation has a sweeping impact across the country and the rest of the world.
-    \item There was a lack of fake news detection tools on social media and due to the polarisation of the media climate, it was extremely difficult for social media to regulate articles published on the platforms or remove factually incorrect articles posted or shared by politicians.
+  \item Many prominent political figures highlighted any news they disagreed with as fake news. This led to the political isolation of the party, whereby any news that looked at them unfavourably had the potential to be dismissed as fake news This reduced the accountability of political figures in the US, a country where federal legislation has a sweeping impact across the country and the rest of the world.
+  \item There was a lack of fake news detection tools on social media and due to the polarisation of the media climate, it was extremely difficult for social media to regulate articles published on the platforms or remove factually incorrect articles posted or shared by politicians.
 \end{enumerate}
 
 Since then, there have been many attempts to introduce ways to deal with these issues such as Politifact which manually reviews articles and social media posts for factual correctness. It posts its findings on its website and is easily accessible for people. Other similar websites exist but the reason manual fact-checking tools are not as prominent in spaces with high amounts of fake news is because it is impossible for manual review tools to scale to the number of news articles and journalistic social media posts published every day.
@@ -195,10 +195,10 @@ There are also many automated fake news detection algorithms which rely on lingu
 Therefore, in order for fake news detection to become more widespread and effective in combating fake news, there are a few different criteria it must fulfil
 
 \begin{enumerate}
-    \item The algorithms need to automatically classify news as real or fake so that they can scale with the growth of social media and the increase in fake news dissemination.
-    \item The algorithms need to incorporate current methods of fake news detection as these have been highly researched and are effective in many situations such as when fake news has been automatically generated or constructed in a highly polarised manner designed to provoke intense responses from readers.
-    \item An additional feature that looks at the content and meaning of the article beyond how has been written must be used to combat fake news that is well-written and designed to look like real news.
-    \item The dataset used to train and assess the algorithms must contain real and fake articles that are written in the same style so that it is not apparent simply from the way an article is written whether it is real or fake.
+  \item The algorithms need to automatically classify news as real or fake so that they can scale with the growth of social media and the increase in fake news dissemination.
+  \item The algorithms need to incorporate current methods of fake news detection as these have been highly researched and are effective in many situations such as when fake news has been automatically generated or constructed in a highly polarised manner designed to provoke intense responses from readers.
+  \item An additional feature that looks at the content and meaning of the article beyond how has been written must be used to combat fake news that is well-written and designed to look like real news.
+  \item The dataset used to train and assess the algorithms must contain real and fake articles that are written in the same style so that it is not apparent simply from the way an article is written whether it is real or fake.
 \end{enumerate}
 
 Our approach improves upon existing approaches and aims to combine the above criteria to analyse both the content and style of articles and make a significantly more informed decision on its classification. The model is restricted to a binary classification - it outputs either real or fake rather than giving a confidence metric of an article's legitimacy. This is done as the aim is for the tool be easily adopted and focusing on the simplicity of the input and output is a priority.
@@ -398,9 +398,11 @@ Accuracy is measured as the proportion of the total number of correctly classifi
 $$\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}$$
 Our dataset is quite balanced so this will be a good general first step measure.
 
-On the other hand, the F1 score is generally used on imbalanced datasets by looking at both precision and recall:
+On the other hand, the F1 score is generally used on imbalanced datasets by looking at both precision and recall. Recall measures how likely a model is able to identify the correct ground truth label and precision refers to how likely an inference is to have a ground truth label when it is predicted to be that class. Both measures concentrate on the \emph{positive} class which we have set to the Real label. By combining the precision and recall in a harmonic mean, we get our F1 score:
 $$F_1 = 2\,\frac{\text{precision}\times\text{recall}}{\text{precision}+\text{recall}}$$
-Whilst our dataset is not imbalanced, we will still output this result for comparative purposes.
+Whilst our dataset is not imbalanced, we will still output this result for comparative purposes since it is a good measure of the model's performance in the positive class.
+
+\tododhruv{Read this and see if its good.}
 
 \newsection{Results and discussion}
 
