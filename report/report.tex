@@ -585,15 +585,6 @@ $$F_1 = 2\,\frac{\text{precision}\times\text{recall}}{\text{precision}+\text{rec
 
 This allows for a fair assessment of both the quantity and quality of the predictions in a format that makes it easier to compare both models.
 
-\begin{comment}
-On the other hand, the F1 score is generally used on imbalanced datasets by looking at both precision and recall. Recall measures how likely a model is able to identify the correct ground truth label and precision refers to how likely an inference is to have a ground truth label when it is predicted to be that class. Both measures concentrate on the \emph{positive} class which we have set to the Real label. By combining the precision and recall in a harmonic mean, we get our F1 score:
-$$F_1 = 2\,\frac{\text{precision}\times\text{recall}}{\text{precision}+\text{recall}}$$
-Whilst our dataset is not imbalanced, we will still output this result for comparative purposes since it is a good measure of the model's performance in the positive class.
-
-\tododhruv{Read this and see if its good.}
-
-\end{comment}
-
 \newsection{Results and discussion}
 
 \tododhruv{Add intro to results}
@@ -664,25 +655,25 @@ After incorporating linguistic features, shown in Figure \ref{accuracy_graph_2} 
     \cmidrule{2-6}
     & SVC & 1.0 & 1.0 & 0.4 & 0.4\\
     \cmidrule{2-6}
-    & DT & 0.99 & 0.99 & 0.5 & 0.5\\
+    & DT & 0.99 & 0.99 & 0.45 & 0.56\\
     \cmidrule{2-6}
     & \textbf{XGB} & 1.0 & 1.0 & \textbf{0.6} & \textbf{0.6}\\
     \midrule
-    \multirow{4}{*}{\shortstack{BERT\\+ Non-Latent}} & LR & 0.96 & 0.96 & 0.6 & 0.71\\
+    \multirow{4}{*}{\shortstack{BERT\\+ Non-Latent}} & LR & 0.94 & 0.94 & 0.70 & 0.73\\
     \cmidrule{2-6}
-    & \textbf{SVC} & 1.0 & 1.0 & 0.65 & \textbf{0.76}\\
+    & \textbf{SVC} & 0.79 & 0.79 & \textbf{0.85} & \textbf{0.87}\\
     \cmidrule{2-6}
-    & DT & 0.91 & 0.91 & 0.45 & 0.42\\
+    & DT & 1.0 & 1.0 & 0.65 & 0.70\\
     \cmidrule{2-6}
-    & \textbf{XGB} & 1.0 & 1.0 & \textbf{0.75} & 0.74\\
+    & \textbf{XGB} & 1.0 & 1.0 & \textbf{0.85} & \textbf{0.87}\\
     \midrule
-    \multirow{4}{*}{\shortstack{BERT\\+ Non-Latent\\+ Similarity}} & LR & 0.96 & 0.96 & 0.65 & 0.76\\
+    \multirow{4}{*}{\shortstack{BERT\\+ Non-Latent\\+ Similarity}} & LR & 0.94 & 0.94 & 0.7 & 0.73\\
     \cmidrule{2-6}
-    & SVC & 1.0 & 1.0 & 0.65 & 0.76\\
+    & SVC & 0.79 & 0.79 & 0.85 & 0.87\\
     \cmidrule{2-6}
-    & DT & 0.91 & 0.91 & 0.55 & 0.71\\
+    & \textbf{DT} & 1.0 & 1.0 & \textbf{0.85} & \textbf{0.88}\\
     \cmidrule{2-6}
-    & \textbf{XGB} & 1.0 & 1.0 & \textbf{0.85} & \textbf{0.84}\\
+    & XGB & 1.0 & 1.0 & 0.85 & 0.87\\
     \bottomrule
   \end{tabular}
   \caption{Table showing all training and test accuracies and F1 scores on our machine learning models with different feature inputs. The best test accuracy and F1 score have been emboldened.}
