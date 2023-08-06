@@ -10,7 +10,7 @@ from scipy.spatial.distance import jensenshannon
 from sklearn.feature_selection import f_classif
 
 from non_latent_features import NonLatentFeatures
-from textual_relevance import TextualRelevance
+from similarity import SimilarityModel
 from preprocess import Preprocessor
 
 def extract_non_latent(row):
@@ -52,9 +52,9 @@ def apply_textual_relevance(df):
     for col in ["content", "ctx1_content", "ctx2_content", "ctx3_content"]:
         df[col + '_token'] = df[col].apply(pp.tokenize_opt)
 
-    tfidf_1_1 = TextualRelevance('tfidf', df.content, ngram_range=(1, 1))
-    tfidf_1_2 = TextualRelevance('tfidf', df.content, ngram_range=(1, 2))
-    word2vec = TextualRelevance('word2vec')
+    tfidf_1_1 = SimilarityModel('tfidf', df.content, ngram_range=(1, 1))
+    tfidf_1_2 = SimilarityModel('tfidf', df.content, ngram_range=(1, 2))
+    word2vec = SimilarityModel('word2vec')
 
     tf_idf_1_1_cosine_dist = []
     tf_idf_1_1_word_app = []

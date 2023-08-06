@@ -19,7 +19,7 @@ from non_latent_features import NonLatentFeatures
 from preprocess import Preprocessor
 # Sentiment comes from NonLatentFeatures now
 # from sentiment import TextBlobSentimentExtractor
-from textual_relevance import TextualRelevance
+from similarity import SimilarityModel
 
 
 class DataNormalizer:
@@ -71,12 +71,12 @@ class Data:
 
     @property
     def train_valid_test(self):
-        if self.X_train_valid is None:
-            raise Exception("Did not load train_valid set")
         return (self.X_train, self.y_train, self.X_valid, self.y_valid, self.X_test, self.y_test)
     
     @property
     def train_test(self):
+        if self.X_train_valid is None:
+            raise Exception("Did not load train_valid set")
         return (self.X_train_valid, self.y_train_valid, self.X_test, self.y_test)
 
 
@@ -241,7 +241,7 @@ class Pipeline:
         # Similarity features
         if self.similarity:
             logging.info("Similarity comparison...")
-            tfidf_1_2 = TextualRelevance("tfidf", df["content"], ngram_range=(1, 2))
+            tfidf_1_2 = SimilarityModel("tfidf", df["content"], ngram_range=(1, 2))
             def extract_similarity(row):
                 contents = []
                 for context in [row["ctx1_content"], row["ctx2_content"], row["ctx3_content"]]:
@@ -335,7 +335,6 @@ class MachineLearningClassifier:
                     "C": [0.2, 0.4, 0.6, 0.8, 1.0, 1.2],
                     "kernel": ["rbf", "poly", "sigmoid"],
                     "gamma": ["scale", 0.01, 0.05],
-                    "class_weight": [None, "balanced"]
                 },
                 n_jobs=-1,
                 scoring="f1"
