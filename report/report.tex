@@ -615,16 +615,20 @@ For our analysis, we will be comparing the top 3 performing machine learning met
   \item \textbf{Model 3} is trained on BERT, linguistic and similarity features
 \end{enumerate}
 
-\begin{figure}[!hbp]
+\begin{figure}[]
   \centering
-  \includegraphics[]{img/accuracy_combined_graph.png}
+  \includegraphics[scale=0.8]{img/accuracy_combined_graph.png}
   \caption{Accuracy and F1-score metrics for top performing models across different features}
   \label{accuracy_graph}
 \end{figure}
 
 Figure \ref{accuracy_graph} presents the classification results. As hypothesised from dataset analysis with PCA, Model 1 does not perform well. With a testing accuracy around 50\% for each classifier, it is simply random guessing on the data. This is used as the baseline for our analysis as it is does incorporate any of our novel contribution to this knowledge domain.
 
-Model 2 incorporates the most effective linguistic features in addition to the BERT features from Model 1. There is a significant increase in testing accuracy and F1-score across every model. Evident in the more complex models of neural networks and XGBoost, it is clear that there is a complex relationship being captured. The increase in accuracy to around
+Model 2 incorporates the most effective linguistic features in addition to the BERT features from Model 1. There is a significant increase in testing accuracy and F1-score across every model. Evident in the more complex models of neural networks and XGBoost, it is clear that there is a complex relationship being captured. There is an increase in test accuracy to around 85\% and increase in F1-score to 0.87 for the top performing model. However, the decision tree classifier which is a far simpler model than XGBoost underperforms with this set of features.
+
+In Model 3, similarity is added as a feature. The neural network accuracy increases as a result, going from 85\% in Model 2 to 90\% in Model 3. Additionally, F1-score increases from 0.86 to 0.91. Although SVC and XGBoost have similar accuracy to Model 2, their F1-score increases slightly. This is because there is a slight increase in precision and decrease in recall. This means that fewer articles that have a ground truth of real are classified as real but the quality of the real predictions increases. Another interesting note is that the simpler classifier - decision tree - performs much better when the similarity score is added. This indicates that the use of similarity score results in a split within the decision tree with much higher information gain than was possible with only BERT and linguistic features.
+
+The reason these combinations of features were chosen for analysis was that BERT and linguistic features have a significant amount of prior research. These were included to represent the current state-of-the-art research within this section of long-form journalistic fake news detection. In terms of this, we conducted analysis and refined these features to develop a set of the most effective features. Model 3 adds similarity to this as this is a novel metric that we developed and analysed. As shown in the results, the linguistic features selected perform extremely well in this task and the additional similarity metric reduces the complexity of the classification whilst increasing the accuracy and F1-score for the neural network and decision tree classifiers.
 
 \begin{comment}
 \begin{figure}[!hbp]
@@ -652,6 +656,8 @@ After incorporating linguistic features, shown in Figure \ref{accuracy_graph_2} 
 \end{figure}
 \end{comment}
 
+Table \ref{machine-learning-results} shows the results for the four machine learning classifiers used and adds more details than visible in Figure \ref{accuracy_graph}. It displays the training and testing metrics for each model to show the effect of changing the combination of features.
+
 \begin{table}
   \centering
   \begin{tabular}{cccccc}
@@ -666,7 +672,7 @@ After incorporating linguistic features, shown in Figure \ref{accuracy_graph_2} 
     \cmidrule{2-6}
     & \textbf{XGB} & 1.0 & 1.0 & \textbf{0.6} & \textbf{0.6}\\
     \midrule
-    \multirow{4}{*}{\shortstack{BERT\\+ Non-Latent}} & LR & 0.94 & 0.94 & 0.70 & 0.73\\
+    \multirow{4}{*}{\shortstack{BERT\\+ Linguistic}} & LR & 0.94 & 0.94 & 0.70 & 0.73\\
     \cmidrule{2-6}
     & \textbf{SVC} & 0.79 & 0.79 & \textbf{0.85} & \textbf{0.87}\\
     \cmidrule{2-6}
@@ -674,7 +680,7 @@ After incorporating linguistic features, shown in Figure \ref{accuracy_graph_2} 
     \cmidrule{2-6}
     & \textbf{XGB} & 1.0 & 1.0 & \textbf{0.85} & \textbf{0.87}\\
     \midrule
-    \multirow{4}{*}{\shortstack{BERT\\+ Non-Latent\\+ Similarity}} & LR & 0.94 & 0.94 & 0.7 & 0.73\\
+    \multirow{4}{*}{\shortstack{BERT\\+ Linguistic\\+ Similarity}} & LR & 0.94 & 0.94 & 0.7 & 0.73\\
     \cmidrule{2-6}
     & SVC & 0.79 & 0.79 & 0.85 & 0.87\\
     \cmidrule{2-6}
