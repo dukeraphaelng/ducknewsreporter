@@ -445,9 +445,20 @@ We will now discuss our similarity metrics comparison result on Figure \ref{simi
 %     \caption{Textual Relevance}
 % \end{figure}
 
-\newsubsection{Normalization and scaling}
+\newsubsection{Feature Normalisation}
 
 \tododhruv{Write}
+
+We experimented with different feature normalisation techniques across the entire dataset and for specific features. Normalisation was conducted columnwise for each feature so that each feature was normalised individually.
+
+MinMaxScaler was used for features where there was a clear range of values in order to convert these values into the range of 0-1. This was not implemented frequently across our features as they did not have a fixed range of values making this technique ineffective.
+
+StandardScaler was primarily used for linguistic features and as they did not have a clear range. This technique works by finding the Z-score for each value within the feature where $\text{Z-score} = \frac{X - \mu}{\sigma}$. This is done by first calculating the mean and standard deviation of the feature and then transforming each value into its Z-score.
+
+RobustScaler was also experimented with in place of StandardScaler for values prone to outliera. This was done as RobustScaler uses $\text{IQR} = \text{Q3} - \text{Q1}$ instead of the standard deviation in the transformation calculation from StandardScaler. This is used because standard deviation is highly affected by outlier values and this was noticeable in features such as word count context articles.
+
+Ultimately, after each scaling technique was applied and the classification was conducted, the results with each type of normalisation and various combinations of them underperformed compared to the original dataset without normalisation. There are a few different reasons why this was the case but after testing various classification models, the most probable reasons are the small size of the dataset used and the lack of appropriate scaling methods available for the linguistic features that rely on counting. Due to this, we decided not to use normalisation for our results.
+
 
 \newsubsection{Model --- Machine learning}
 
@@ -458,6 +469,10 @@ To find the best hyperparameters, we perform 5-Fold cross validation across 80\%
 \newsubsection{Model --- Neural networks}
 
 \tododhruv{Write}
+
+The second approach taken for classification was using deep learning as we hypothesised that it would be able to find more complex relationships between the large variety of BERT, linguistic, and similarity features. Initially both convolutional neural networks and simple feedforward layers were considered. After analysing the features and noting that they did not have any spacial relation, only the second approach was considered.
+
+We used a very simple structure with 4 hidden layers using the ReLU activation function and an output layer with one neuron and the sigmoid activation function as the task required binary classification. We kept the structure simple due to the small size of the dataset and to prevent overfitting. Additionally, a dropout of 0.2 was added to further prevent overfitting. The dataset was split in a 60:20:20 train, validation, test split to allow for hyperparameter training and binary-crossentropy loss was used. Multiple optimisers were used during training, however, based on the validation accuracy we decided to use Adam as the optimiser.
 
 \newsection{Experimental setup}
 
