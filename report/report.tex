@@ -3,6 +3,7 @@
 \usepackage{mathtools} % falign
 \usepackage{amsmath} % Basic maths
 \usepackage{amssymb} % For some symbols
+\usepackage{comment} % For comments
 \usepackage{bm} % bold math
 \usepackage{tikz} % For drawing trees
 \usepackage{tikz-qtree} % For drawing trees
@@ -28,7 +29,8 @@
 \usepackage{xifthen}% provides \isempty test
 \usepackage[font=small,labelfont=bf]{caption}
 
-\usepackage{subfig}
+\usepackage{caption}
+\usepackage{subcaption}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -518,24 +520,84 @@ After extending this dataset with our novel context article scraping and similar
   \label{article-samples}
 \end{table}
 
+\newsubsection{Data Analysis Using PCA and KMeans}
+
+In order to observe relationships between data within the entire dataset, the BERT, linguistic and similarity features for each data point were collected and dimensionality reduction was conducted using Principle Component Analysis to reduce the dimensions of the data to 2. Plot of these values were constructed with two different combinations of features: one using only BERT features for PCA and the other using linguistic and similarity features in addition to BERT features.
+
+Additionally, to observe whether the data was forming clusters based on its reduced dimensions, KMeans was used with 5 clusters. The reason for using 5 clusters instead of 2 was because both fake and real articles about different topics or written differently can form clusters with other articles in a similar style and we were observing for distinct sets of real and fake clusters rather than simply one region of fake articles and another with real ones.
+
+\begin{figure*}[t!]
+  \centering
+  \begin{subfigure}[t]{0.5\textwidth}
+    \centering
+    \includegraphics[scale=0.5]{img/pca_1.png}
+    \caption{PCA Graph}
+    \label{pca_1}
+  \end{subfigure}%
+  ~
+  \begin{subfigure}[t]{0.5\textwidth}
+    \centering
+    \includegraphics[scale=0.5]{img/kmeans_1.png}
+    \caption{KMeans Graph}
+    \label{kmeans_1}
+  \end{subfigure}
+  \caption{Analysis on PCA based on BERT features}
+  \label{pca_kmeans_1}
+\end{figure*}
+
+\begin{figure*}[t!]
+  \centering
+  \begin{subfigure}[t]{0.5\textwidth}
+    \centering
+    \includegraphics[scale=0.5]{img/pca_3.png}
+    \caption{PCA Graph}
+    \label{pca_2}
+  \end{subfigure}%
+  ~
+  \begin{subfigure}[t]{0.5\textwidth}
+    \centering
+    \includegraphics[scale=0.5]{img/kmeans_3.png}
+    \caption{KMeans Graph}
+    \label{kmeans_2}
+  \end{subfigure}
+  \caption{Analysis on PCA based on BERT, linguistic and similarity features}
+  \label{pca_kmeans_2}
+\end{figure*}
+
+As can be seen in Figure \ref{pca_1}, there is very little relationship between the principle components of fake and real articles. When clustering is performed, as shown in Figure \ref{kmeans_1}, each cluster has an even distribution of real and fake articles implying there is no evident pattern in the data.
+
+Whereas in Figure \ref{pca_2}, there is a clear grouping of values for fake data. Interestingly, real data does not have a clear cluster of values and instead occupies a large region of area to the right of the fake data. One potential reason for this is that there are a lot of similar features between fake articles such as the number of adverbs and the types of polarising language. Additionally, the similarity metric could be playing a strong role in influencing the first principle component, pc1, which would potentially result in fake news having low scores and real news having a broader range of similarity scores. Regardless, there is a clear distinction and this is also shown in Figure \ref{kmeans_2} where the majority of fake values are clustered in the purple cluster and the majority of real values are present in two separate clusters.
+
+This indicates that the features selected are effective in separating the dataset into distinct fake and real clusters.
+
 \newsubsection{Evaluation metrics}\label{section:eval}
 
-To evaluate our classification models, we will use accuracy and F1 score. These metrics are commonly used for binary classification problems as well as in the misinformation detection domain.
+To evaluate our classification models, we will use accuracy and F1 score. These metrics are commonly used for binary classification problems as well as in the misinformation detection domain. When referring to these metrics, we will label real articles as positive and fake articles as negative.
 
-Accuracy is measured as the proportion of the total number of correctly classified samples over the total count of samples:
-$$\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}$$
+Accuracy is measured as the proportion of the total number of correctly classified samples over the total count of samples. Mathematically this is represented as
+$$\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}.$$
+
+Accuracy is an effective metric for this analysis as it is a holistic measure of the model's ability to identify a real article as real and a fake article as fake, which is the core component of the problem of fake news detection.
 Our dataset is quite balanced so this will be a good general first step measure.
 
-On the other hand, the F1 score is generally used on imbalanced datasets by looking at both precision and recall. Recall measures how likely a model is able to identify the correct ground truth label and precision refers to how likely an inference is to have a ground truth label when it is predicted to be that class. Both measures concentrate on the \emph{positive} class which we have set to the Real label. By combining the precision and recall in a harmonic mean, we get our F1 score:\gtododhruv{I think we should give the formula for precision and recall here as well}
+Recall refers to how likely the model is able to identify an article is real when its ground truth is real. Precision is a measure of the proportion of all articles the model predicts to be real that have a ground truth of real. As such, recall is a measure of the quantity of the predictions whereas precision is a measure of the quality of the predictions. We are focusing on F1-score as it is the harmonic mean of recall and precision where
+$$F_1 = 2\,\frac{\text{precision}\times\text{recall}}{\text{precision}+\text{recall}}.$$
+
+This allows for a fair assessment of both the quantity and quality of the predictions in a format that makes it easier to compare both models.
+
+\begin{comment}
+On the other hand, the F1 score is generally used on imbalanced datasets by looking at both precision and recall. Recall measures how likely a model is able to identify the correct ground truth label and precision refers to how likely an inference is to have a ground truth label when it is predicted to be that class. Both measures concentrate on the \emph{positive} class which we have set to the Real label. By combining the precision and recall in a harmonic mean, we get our F1 score:
 $$F_1 = 2\,\frac{\text{precision}\times\text{recall}}{\text{precision}+\text{recall}}$$
 Whilst our dataset is not imbalanced, we will still output this result for comparative purposes since it is a good measure of the model's performance in the positive class.
 
 \tododhruv{Read this and see if its good.}
 
+\end{comment}
+
 \newsection{Results and discussion}
 
 \tododhruv{Add intro to results}
-
+\begin{comment}
 For our machine learning models, we observed a increase in accuracy and F1 as we added our higher quality features to the model. Table~\ref{machine-learning-results} shows our results for all models.
 
 With just the BERT features, all our chosen models performed not much better than random guessing with XGBoost edging out with a 0.6 F1 score. This shows that just the bert features themselves don't convey enough information by themselves when fitting weights to our models.
@@ -543,6 +605,54 @@ With just the BERT features, all our chosen models performed not much better tha
 When we add our selected non-latent features, we see a large jump in performance in all models. In particular, we see XGB remain strong due to its ability to select the best features to split on and SVC becoming our best performer.
 
 Adding our novel similarity score, we see more improvement. XGB and DT have improved by a large amount with XGB as our best performer. This is due to the fact that our similarity is one feature amount about 800 features and we know both these models are able to select the best feature for splitting. We also see that SVC and LR have stagnated after adding this score but have not decreased in performance due to not being able to make effective use of this single feature.
+
+\end{comment}
+
+
+For our analysis, we will be comparing the top 3 performing machine learning methods alongside the best performing neural network for each task. There are three models that are compared
+
+\begin{enumerate}
+  \item \textbf{Model 1} is trained only on BERT features
+  \item \textbf{Model 2} is trained on both BERT and linguistic features
+  \item \textbf{Model 3} is trained on BERT, linguistic and similarity features
+\end{enumerate}
+
+\begin{figure}[!hbp]
+  \centering
+  \includegraphics[]{img/accuracy_combined_graph.png}
+  \caption{Accuracy and F1-score metrics for top performing models across different features}
+  \label{accuracy_graph}
+\end{figure}
+
+Figure \ref{accuracy_graph} presents the classification results. As hypothesised from dataset analysis with PCA, Model 1 does not perform well. With a testing accuracy around 50\% for each classifier, it is simply random guessing on the data. This is used as the baseline for our analysis as it is does incorporate any of our novel contribution to this knowledge domain.
+
+Model 2 incorporates the most effective linguistic features in addition to the BERT features from Model 1. There is a significant increase in testing accuracy and F1-score across every model. Evident in the more complex models of neural networks and XGBoost, it is clear that there is a complex relationship being captured. The increase in accuracy to around
+
+\begin{comment}
+\begin{figure}[!hbp]
+  \centering
+  \includegraphics[]{img/accuracy_graph_1.png}
+  \caption{Metrics for models based on BERT features}
+  \label{accuracy_graph_1}
+\end{figure}
+
+As we can see from Figure \ref{accuracy_graph_1}, each model performs very poorly when the input is simply the BERT features and no linguistic or similarity metrics are used.
+
+\begin{figure}[!hbp]
+  \centering
+  \includegraphics[]{img/accuracy_graph_2.png}
+  \caption{Metrics for models based on BERT and linguistic features}
+  \label{accuracy_graph_2}
+\end{figure}
+
+After incorporating linguistic features, shown in Figure \ref{accuracy_graph_2} there is a noticeable improvement across all
+
+\begin{figure}[!hbp]
+  \centering
+  \includegraphics[]{img/accuracy_graph_3.png}
+  \caption{Metrics for models based on BERT features}
+\end{figure}
+\end{comment}
 
 \begin{table}
   \centering
