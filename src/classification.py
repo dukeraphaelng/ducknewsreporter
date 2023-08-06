@@ -71,12 +71,12 @@ class Data:
 
     @property
     def train_valid_test(self):
-        if self.X_train_valid is None:
-            raise Exception("Did not load train_valid set")
         return (self.X_train, self.y_train, self.X_valid, self.y_valid, self.X_test, self.y_test)
     
     @property
     def train_test(self):
+        if self.X_train_valid is None:
+            raise Exception("Did not load train_valid set")
         return (self.X_train_valid, self.y_train_valid, self.X_test, self.y_test)
 
 
