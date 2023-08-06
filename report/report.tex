@@ -404,7 +404,52 @@ Whilst our dataset is not imbalanced, we will still output this result for compa
 
 \newsection{Results and discussion}
 
-\todojim{Machine learning}
+\tododhruv{Add intro to results}
+
+For our machine learning models, we observed a increase in accuracy and F1 as we added our higher quality features to the model. Table~\ref{machine-learning-results} shows our results for all models.
+
+With just the BERT features, all our chosen models performed not much better than random guessing with XGBoost edging out with a 0.6 F1 score. This shows that just the bert features themselves don't convey enough information by themselves when fitting weights to our models.
+
+When we add our selected non-latent features, we see a large jump in performance in all models. In particular, we see XGB remain strong due to its ability to select the best features to split on and SVC becoming our best performer.
+
+Adding our novel similarity score, we see more improvement. XGB and DT have improved by a large amount with XGB as our best performer. This is due to the fact that our similarity is one feature amount about 800 features and we know both these models are able to select the best feature for splitting. We also see that SVC and LR have stagnated after adding this score but have not decreased in performance due to not being able to make effective use of this single feature.
+
+\begin{table}
+  \centering
+  \begin{tabular}{cccccc}
+    \toprule
+    Features & Model & Train Acc. & Train F1 & Test Acc. & Test F1\\
+    \midrule
+    \multirow{4}{*}{BERT} & LR & 0.99 & 0.99 & 0.5 & 0.5\\
+    \cmidrule{2-6}
+    & SVC & 1.0 & 1.0 & 0.4 & 0.4\\
+    \cmidrule{2-6}
+    & DT & 0.99 & 0.99 & 0.5 & 0.5\\
+    \cmidrule{2-6}
+    & \textbf{XGB} & 1.0 & 1.0 & \textbf{0.6} & \textbf{0.6}\\
+    \midrule
+    \multirow{4}{*}{\shortstack{BERT\\+ Non-Latent}} & LR & 0.96 & 0.96 & 0.6 & 0.71\\
+    \cmidrule{2-6}
+    & \textbf{SVC} & 1.0 & 1.0 & 0.65 & \textbf{0.76}\\
+    \cmidrule{2-6}
+    & DT & 0.91 & 0.91 & 0.45 & 0.42\\
+    \cmidrule{2-6}
+    & \textbf{XGB} & 1.0 & 1.0 & \textbf{0.75} & 0.74\\
+    \midrule
+    \multirow{4}{*}{\shortstack{BERT\\+ Non-Latent\\+ Similarity}} & LR & 0.96 & 0.96 & 0.65 & 0.76\\
+    \cmidrule{2-6}
+    & SVC & 1.0 & 1.0 & 0.65 & 0.76\\
+    \cmidrule{2-6}
+    & DT & 0.91 & 0.91 & 0.55 & 0.71\\
+    \cmidrule{2-6}
+    & \textbf{XGB} & 1.0 & 1.0 & \textbf{0.85} & \textbf{0.84}\\
+    \bottomrule
+  \end{tabular}
+  \caption{Table showing all training and test accuracies and F1 scores on our machine learning models with different feature inputs. The best test accuracy and F1 score have been emboldened.}
+  \label{machine-learning-results}
+\end{table}
+
+\todojim{Add table of parameters of models}
 
 \tododhruv{Neural nets}
 
