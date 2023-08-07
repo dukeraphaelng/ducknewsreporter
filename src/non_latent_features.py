@@ -18,7 +18,6 @@ from readability.exceptions import ReadabilityException
 import syllables
 import contractions
 
-# TODO: Add example and methods here
 class NonLatentFeatures():
     def __init__(self, raw):
         """Extract non latent features from document
