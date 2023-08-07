@@ -698,7 +698,7 @@ Table \ref{machine-learning-results} shows the results for the four machine lear
 While our preprocessing was quite generic for NLP tasks, we believe there were a few oversights that caused unreliable results. Two issues were:
 \begin{itemize}
   \item Converting everything to lowercase destroyed acronyms such as ``US''. This changed the meaning of some sentences.
-  \item The \verb|nltk| lemmatizer required manually specifying the part of speech to work. This caused some verbs to be incorrectly lemmatized. We could have used a different library that extracted the POS automatically. Alternatively we could have investigated not lemmatizing at all to maintain proper structure for non-latent features and BERT embeddings.
+  \item The \verb|nltk| lemmatizer required manually specifying the part of speech to work. This caused some verbs to be incorrectly lemmatized. We could have used a different library such as \verb|spaCy| to extract the POS automatically. Alternatively we could have investigated not lemmatizing at all to maintain proper structure for non-latent features and BERT embeddings.
 \end{itemize}
 
 This research would have really benefited from less or no preprocessing at all. For all our features, there could be an argument where no preprocessing would have been better. For example summary extraction or BERT features could have learnt meaning from the unfiltered text. This could be investigated for future research to strengthen our features.
@@ -716,7 +716,7 @@ Our non-latent feature extraction pipeline currently applies on the content of t
 Our summary extraction extracted most of the correct meaning from the text. However two main issues remained causing it to produce imperfect results:
 \begin{itemize}
   \item Words would be unordered and if read together in a sentence, wouldn't make sense to a human.
-  \item \emph{Junk} such as connectives would be left in the summary. \gtodojim{Can't we just use spaCy or NLTK to look for all connectives (with the specific POS tags) and remove them? we can also use stop words to remove them, in that case we can add these things as future work, ie to refine the algorithm.}
+  \item \emph{Junk} such as connectives from poor preprocessing or words not too realted to the article content would be left in the summary. This could be a sign of a ineffective topic extraction method.
 \end{itemize}
 
 We believe future research could have looked into better tuned models that synthesized higher quality topic sentences. In our research, there were very few but we believe in particular a summary extractor trained on long-form news articles would have performed better. In addition, we could have also included the title since semantically, the title is supposed to tell the reader what the rest of the article is about.
