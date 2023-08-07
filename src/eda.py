@@ -14,6 +14,7 @@ from similarity import SimilarityModel
 from preprocess import Preprocessor
 
 def extract_non_latent(row):
+    '''Extract non latent features from all the content section of prediction and context articles'''
     total_dict = {}
     for k in ['div_NOUN_sum', 'div_NOUN_percent', 'div_VERB_sum', 'div_VERB_percent', 'div_ADJ_sum', 'div_ADJ_percent', 'div_ADV_sum', 'div_ADV_percent', 'div_LEX_sum', 'div_LEX_percent', 'div_CONT_sum', 'div_CONT_percent', 'div_FUNC_sum', 'div_FUNC_percent', 'pron_FPS_sum', 'pron_FPS_percent', 'pron_FPP_sum', 'pron_FPP_percent', 'pron_STP_sum', 'pron_STP_percent', 'quant_NOUN_sum', 'quant_NOUN_percent', 'quant_VERB_sum', 'quant_VERB_percent', 'quant_ADJ_sum', 'quant_ADJ_percent', 'quant_ADV_sum', 'quant_ADV_percent', 'quant_PRON_sum', 'quant_PRON_percent', 'quant_DET_sum', 'quant_DET_percent', 'quant_NUM_sum', 'quant_NUM_percent', 'quant_PUNCT_sum', 'quant_PUNCT_percent', 'quant_SYM_sum', 'quant_SYM_percent', 'quant_PRP_sum', 'quant_PRP_percent', 'quant_PRP$_sum', 'quant_PRP$_percent', 'quant_WDT_sum', 'quant_WDT_percent', 'quant_CD_sum', 'quant_CD_percent', 'quant_VBD_sum', 'quant_VBD_percent', 'quant_STOP_sum', 'quant_STOP_percent', 'quant_LOW_sum', 'quant_LOW_percent', 'quant_UP_sum', 'quant_UP_percent', 'quant_NEG_sum', 'quant_NEG_percent', 'quant_QUOTE_sum', 'quant_NP_sum', 'quant_CHAR_sum', 'quant_WORD_sum', 'quant_SENT_sum', 'quant_SYLL_sum', 'senti_!_sum', 'senti_!_percent', 'senti_?_sum', 'senti_?_percent', 'senti_CAPS_sum', 'senti_CAPS_percent', 'senti_POL_sum', 'senti_SUBJ_sum', 'avg_chars_per_word_sum', 'avg_words_per_sent_sum', 'avg_claus_per_sent_sum', 'avg_puncts_per_sent_sum', 'med_st_ALL_sum', 'med_st_NP_sum', 'read_gunning-fog_sum', 'read_coleman-liau_sum', 'read_dale-chall_sum', 'read_flesch-kincaid_sum', 'read_linsear-write_sum', 'read_spache_sum', 'read_automatic_sum', 'read_flesch_sum']:
         for content_k in ("content", "ctx1_content", "ctx2_content", "ctx3_content"):
@@ -30,23 +31,8 @@ def extract_non_latent(row):
             total_dict[key + '_' + k] = v
     return pd.Series(total_dict.values(), total_dict.keys())
 
-def non_latent_cosine_dist_func(columns):
-    def non_latent_cosine_dist(row):
-        predict_vec = np.array([row[col] for col in columns])
-        context_vecs = []
-        # get all vec of context vectors here
-        for type_ in ["ctx1_content", "ctx2_content", "ctx3_content"]:
-            if isinstance(row[type_], str) and len(row[type_]) > 0:
-                context_vec = np.array([row[type_ + col[7:]] for col in columns])
-                context_vecs.append(context_vec)
-
-        val = np.mean([1 - spatial.distance.cosine(predict_vec, context_vec) for context_vec in context_vecs])
-
-        return pd.Series([val], ['non_latent_cosine_dist'])
-    
-    return non_latent_cosine_dist
-
 def apply_textual_relevance(df):
+    '''Apply textual relevance calculations on dataframe'''
     pp = Preprocessor()
 
     for col in ["content", "ctx1_content", "ctx2_content", "ctx3_content"]:
@@ -117,6 +103,7 @@ def jsd(p, q, base=np.e):
     return jensenshannon(p, q)
 
 def boxplot_feats(df):
+    '''Plot all boxplot features of the dataframe with subplot for each range of power of 10'''
     feats = ['content_' + k for k in ['div_NOUN_sum', 'div_NOUN_percent', 'div_VERB_sum', 'div_VERB_percent', 'div_ADJ_sum', 'div_ADJ_percent', 'div_ADV_sum', 'div_ADV_percent', 'div_LEX_sum', 'div_LEX_percent', 'div_CONT_sum', 'div_CONT_percent', 'div_FUNC_sum', 'div_FUNC_percent', 'pron_FPS_sum', 'pron_FPS_percent', 'pron_FPP_sum', 'pron_FPP_percent', 'pron_STP_sum', 'pron_STP_percent', 'quant_NOUN_sum', 'quant_NOUN_percent', 'quant_VERB_sum', 'quant_VERB_percent', 'quant_ADJ_sum', 'quant_ADJ_percent', 'quant_ADV_sum', 'quant_ADV_percent', 'quant_PRON_sum', 'quant_PRON_percent', 'quant_DET_sum', 'quant_DET_percent', 'quant_NUM_sum', 'quant_NUM_percent', 'quant_PUNCT_sum', 'quant_PUNCT_percent', 'quant_SYM_sum', 'quant_SYM_percent', 'quant_PRP_sum', 'quant_PRP_percent', 'quant_PRP$_sum', 'quant_PRP$_percent', 'quant_WDT_sum', 'quant_WDT_percent', 'quant_CD_sum', 'quant_CD_percent', 'quant_VBD_sum', 'quant_VBD_percent', 'quant_STOP_sum', 'quant_STOP_percent', 'quant_LOW_sum', 'quant_LOW_percent', 'quant_UP_sum', 'quant_UP_percent', 'quant_NEG_sum', 'quant_NEG_percent', 'quant_QUOTE_sum', 'quant_NP_sum', 'quant_CHAR_sum', 'quant_WORD_sum', 'quant_SENT_sum', 'quant_SYLL_sum', 'senti_!_sum', 'senti_!_percent', 'senti_?_sum', 'senti_?_percent', 'senti_CAPS_sum', 'senti_CAPS_percent', 'senti_POL_sum', 'senti_SUBJ_sum', 'avg_chars_per_word_sum', 'avg_words_per_sent_sum', 'avg_claus_per_sent_sum', 'avg_puncts_per_sent_sum', 'med_st_ALL_sum', 'med_st_NP_sum']]
     read_feats = ['content_' + k for k in ['read_gunning-fog_sum', 'read_coleman-liau_sum', 'read_dale-chall_sum', 'read_flesch-kincaid_sum', 'read_linsear-write_sum', 'read_spache_sum', 'read_automatic_sum', 'read_flesch_sum']]
     total_feats = feats + read_feats
@@ -140,6 +127,7 @@ def boxplot_feats(df):
     plt.show()
 
 def plot_word_count(df, str_type_):
+    '''Plot word count of dataframe'''
     # https://stackoverflow.com/questions/16180946/drawing-average-line-in-histogram-matplotlib
     plt.hist(df)
     plt.title(f'{str_type_} Word Count Histogram')
@@ -150,6 +138,7 @@ def plot_word_count(df, str_type_):
     plt.show()
 
 def plot_word_cloud(df):
+    '''Plot word cloud of dataframe content'''
     # Without stop words
     word_cloud = WordCloud(width=800, height=800, background_color='white', stopwords=STOPWORDS).generate(" ".join(df['content']))
 
@@ -159,7 +148,8 @@ def plot_word_cloud(df):
     plt.tight_layout()
     plt.show()
 
-def calculate_p(feats, df_feats, label):
+def _calculate_p(feats, df_feats, label):
+    '''Perform ANOVA on feats against label'''
     # Get all the features to feed into the two models
     f_stats, p_values = f_classif(df_feats, label)
     
@@ -167,6 +157,7 @@ def calculate_p(feats, df_feats, label):
     return sorted(list(zip(feats, p_values)), key=lambda x: x[1])
 
 def plot_p_values_table(unsorted_p):
+    '''Plot p values in a single table with values > 0.05 highlighted'''
     sorted_p = sorted(unsorted_p, key=lambda x: x[1])
     fig, ax = plt.subplots()
 
@@ -186,13 +177,14 @@ def plot_p_values_table(unsorted_p):
     plt.show()
 
 def plot_p_values(df):
+    '''Plot p values in a table split into two with values > 0.05 highlighted'''
     feats = ['content_' + k for k in ['div_NOUN_sum', 'div_NOUN_percent', 'div_VERB_sum', 'div_VERB_percent', 'div_ADJ_sum', 'div_ADJ_percent', 'div_ADV_sum', 'div_ADV_percent', 'div_LEX_sum', 'div_LEX_percent', 'div_CONT_sum', 'div_CONT_percent', 'div_FUNC_sum', 'div_FUNC_percent', 'pron_FPS_sum', 'pron_FPS_percent', 'pron_FPP_sum', 'pron_FPP_percent', 'pron_STP_sum', 'pron_STP_percent', 'quant_NOUN_sum', 'quant_NOUN_percent', 'quant_VERB_sum', 'quant_VERB_percent', 'quant_ADJ_sum', 'quant_ADJ_percent', 'quant_ADV_sum', 'quant_ADV_percent', 'quant_PRON_sum', 'quant_PRON_percent', 'quant_DET_sum', 'quant_DET_percent', 'quant_NUM_sum', 'quant_NUM_percent', 'quant_PUNCT_sum', 'quant_PUNCT_percent', 'quant_SYM_sum', 'quant_SYM_percent', 'quant_PRP_sum', 'quant_PRP_percent', 'quant_PRP$_sum', 'quant_PRP$_percent', 'quant_WDT_sum', 'quant_WDT_percent', 'quant_CD_sum', 'quant_CD_percent', 'quant_VBD_sum', 'quant_VBD_percent', 'quant_STOP_sum', 'quant_STOP_percent', 'quant_LOW_sum', 'quant_LOW_percent', 'quant_UP_sum', 'quant_UP_percent', 'quant_NEG_sum', 'quant_NEG_percent', 'quant_QUOTE_sum', 'quant_NP_sum', 'quant_CHAR_sum', 'quant_WORD_sum', 'quant_SENT_sum', 'quant_SYLL_sum', 'senti_!_sum', 'senti_!_percent', 'senti_?_sum', 'senti_?_percent', 'senti_CAPS_sum', 'senti_CAPS_percent', 'senti_POL_sum', 'senti_SUBJ_sum', 'avg_chars_per_word_sum', 'avg_words_per_sent_sum', 'avg_claus_per_sent_sum', 'avg_puncts_per_sent_sum', 'med_st_ALL_sum', 'med_st_NP_sum']]
-    non_read_p_vals_sorted = calculate_p(feats, df[feats], df.label) 
+    non_read_p_vals_sorted = _calculate_p(feats, df[feats], df.label) 
 
     read_feats = ['content_' + k for k in ['read_gunning-fog_sum', 'read_coleman-liau_sum', 'read_dale-chall_sum', 'read_flesch-kincaid_sum', 'read_linsear-write_sum', 'read_spache_sum', 'read_automatic_sum', 'read_flesch_sum']]
     read_df = df[read_feats + ['label']]
     read_df.dropna()
-    read_p_vals_sorted = calculate_p(read_feats, read_df[read_feats], read_df.label)
+    read_p_vals_sorted = _calculate_p(read_feats, read_df[read_feats], read_df.label)
     sorted_p = sorted(non_read_p_vals_sorted + read_p_vals_sorted, key=lambda x: x[1])
 
     fig, axes = plt.subplots(ncols=2, figsize=(10, 8), sharex=True, sharey=True)
@@ -206,10 +198,10 @@ def plot_p_values(df):
 
     ax[0].table(cellText=[(x[0][8:], np.format_float_scientific(x[1], precision=2, exp_digits=2)) for x in sorted_p[:len(sorted_p)//2]], 
                 cellColours=[('white', 'white') if x[1] < 0.05 else ('lightsteelblue', 'lightsteelblue') for x in sorted_p[:len(sorted_p)//2]],
-                colLabels=['category', 'p-value'], loc='center')
+                colLabels=['category', 'p-value'], loc='center', colWidths=[0.5, 0.5], cellLoc='center')
     ax[1].table(cellText=[(x[0][8:], np.format_float_scientific(x[1], precision=2, exp_digits=2)) for x in sorted_p[len(sorted_p)//2:]], 
                 cellColours=[('white', 'white') if x[1] < 0.05 else ('lightsteelblue', 'lightsteelblue') for x in sorted_p[len(sorted_p)//2:]],
-                colLabels=['category', 'p-value'], loc='center')
+                colLabels=['category', 'p-value'], loc='center', colWidths=[0.5, 0.5], cellLoc='center')
 
     fig.suptitle('Features sorted by p-values', fontsize='xx-large')
     handles = [Rectangle((0, 0), 1, 1, color=c, ec="k") for c in ['white', 'lightsteelblue']]
@@ -219,6 +211,7 @@ def plot_p_values(df):
     return sorted_p
 
 def plot_p_values_with_correlation(sorted_p, selected_feats):
+    '''Plot p values in a table split into two with values > 0.05 and correlated values highlighted'''
     fig, axes = plt.subplots(ncols=2, figsize=(10, 8), sharex=True, sharey=True)
     fig.patch.set_visible(False)
 
@@ -254,7 +247,8 @@ def plot_p_values_with_correlation(sorted_p, selected_feats):
         return out
 
     for i in range(2):
-        ax[i].table(cellText=cellText(i), cellColours=cellColours(i), colLabels=['category', 'p-value'], loc='center')
+        tab = ax[i].table(cellText=cellText(i), cellColours=cellColours(i), colLabels=['Feature', 'p-value'], loc='center', colWidths=[0.5, 0.5], cellLoc='center')
+        tab.set_fontsize(12)
 
     fig.suptitle('Features sorted by p-values', fontsize='xx-large')
     handles = [Rectangle((0, 0), 1, 1, color=c, ec="k") for c in ['white', 'lightsteelblue', 'lightcoral']]
@@ -262,7 +256,29 @@ def plot_p_values_with_correlation(sorted_p, selected_feats):
     fig.tight_layout()
     plt.show()
 
+# Slides
+def plot_p_values_slides(unsorted_p):
+    '''Plot p values in a single table with values > 0.05 highlighted'''
+    sorted_p = sorted(unsorted_p, key=lambda x: x[1])
+    fig, ax = plt.subplots()
+
+    # hide axes
+    fig.patch.set_visible(False)
+    ax.axis('off')
+    ax.axis('tight')
+
+    table = ax.table(cellText=[(x[0][8:], np.format_float_scientific(x[1], precision=2, exp_digits=2)) for x in sorted_p], colLabels=['category', 'p-value'], loc='center')
+
+    for x in np.where(np.array([x[1] for x in sorted_p]) >= 0.05)[0]:
+        table[(x + 1, 0)].set_facecolor("#56b5fd")
+        table[(x + 1, 1)].set_facecolor("#56b5fd")
+
+    fig.tight_layout()
+
+    plt.show()
+
 def remove_correlated_feats(corr_matrx, p_values_sorted):
+    '''Remove correlated features from list of features and p values'''
     upper_tri = corr_matrx.where(np.triu(np.ones(corr_matrx.shape),k=1).astype(np.bool))
 
     dict_ = dict(enumerate([i[0] for i in p_values_sorted]))
@@ -291,6 +307,7 @@ def remove_correlated_feats(corr_matrx, p_values_sorted):
     return graph_dict
     
 def group_by_key(graph_dict):
+    '''Group features by their category'''
     final_dict = {}
     for col in graph_dict.keys():
         k = col.split('_')[1]
@@ -299,6 +316,7 @@ def group_by_key(graph_dict):
     return final_dict
 
 def plot_corr_heat_map(df, sorted_p):
+    '''Plot correlation heat map'''
     # https://lifewithdata.com/2022/03/13/how-to-remove-highly-correlated-features-from-a-dataset/
     # https://www.projectpro.io/recipes/drop-out-highly-correlated-features-in-python
     # create correlation  matrix
@@ -312,11 +330,30 @@ def plot_corr_heat_map(df, sorted_p):
     
     return corr_matrx
 
-def plot_method_comparison(df):
+def non_latent_cosine_dist_func(columns):
+    def non_latent_cosine_dist(row):
+        predict_vec = np.array([row[col] for col in columns])
+        context_vecs = []
+        # get all vec of context vectors here
+        for type_ in ["ctx1_content", "ctx2_content", "ctx3_content"]:
+            if isinstance(row[type_], str) and len(row[type_]) > 0:
+                context_vec = np.array([row[type_ + col[7:]] for col in columns])
+                context_vecs.append(context_vec)
+
+        val = np.mean([1 - spatial.distance.cosine(predict_vec, context_vec) for context_vec in context_vecs])
+
+        return pd.Series([val], ['non_latent_cosine_dist'])
+    
+    return non_latent_cosine_dist
+
+def plot_method_comparison(df, selected_feats):
+    '''Plot comparison between all similarity metrics'''
     colors = ["red", "green"]
     labels = ["Fake", "Real"]
 
-    methods = ['word2vec_cosine_dist', 'tf_idf_1_1_cosine_dist', 'tf_idf_1_1_word_app', 'tf_idf_1_1_matching', 'tf_idf_1_2_cosine_dist', 'tf_idf_1_2_word_app', 'tf_idf_1_2_matching', 'tf_idf_1_1_harmonic_mean', 'tf_idf_1_2_harmonic_mean']
+    df['non_latent_cosine_dist'] = df.apply(non_latent_cosine_dist_func(list(selected_feats.keys())), axis=1)
+
+    methods = ['non_latent_cosine_dist', 'word2vec_cosine_dist', 'tf_idf_1_1_cosine_dist', 'tf_idf_1_1_word_app', 'tf_idf_1_1_matching', 'tf_idf_1_2_cosine_dist', 'tf_idf_1_2_word_app', 'tf_idf_1_2_matching', 'tf_idf_1_1_harmonic_mean', 'tf_idf_1_2_harmonic_mean']
     f_stats, p_values = f_classif(df[methods], df.label)
 
     def plot_given_method(ax_, df, p_val, method, method_name):
@@ -327,25 +364,27 @@ def plot_method_comparison(df):
         dist = jsd(df[df.label == 0][method], df[df.label == 1][method])
         delta_mu = abs(df[df.label == 0][method].mean() - df[df.label == 1][method].mean())
 
-        ax_.set_title(f"{method_name}, Δµ: {delta_mu:.2f}, JSD: {dist:.2f}, p: {np.format_float_scientific(p_val, precision=2, exp_digits=2)}")
+        ax_.set_title(f"{method_name}\n Δµ: {delta_mu:.2f}, JSD: {dist:.2f}\np: {np.format_float_scientific(p_val, precision=2, exp_digits=2)}", fontsize='large')
 
-    fig, axes = plt.subplots(ncols=2, nrows=5, figsize=(12, 10), sharex=True, sharey=True)
+    fig, axes = plt.subplots(ncols=5, nrows=2, figsize=(10, 5), sharex=True, sharey=True)
     ax = axes.ravel()
-    ax[1].set_visible(False)
 
-    plot_given_method(ax[0], df, p_values[0], 'word2vec_cosine_dist', 'Word2Vec Cosine Dist')
-    plot_given_method(ax[2], df, p_values[1], 'tf_idf_1_1_cosine_dist', 'TF-IDF (1-1) Cosine Dist')
-    plot_given_method(ax[3], df, p_values[2], 'tf_idf_1_2_cosine_dist', 'TF-IDF (1-2) Cosine Dist')
-    plot_given_method(ax[4], df, p_values[3], 'tf_idf_1_1_word_app', 'TF-IDF (1-1) Word App')
-    plot_given_method(ax[5], df, p_values[4], 'tf_idf_1_2_word_app', 'TF-IDF (1-2) Word App')
-    plot_given_method(ax[6], df, p_values[5], 'tf_idf_1_1_matching', 'TF-IDF (1-1) Matching Score')
-    plot_given_method(ax[7], df, p_values[6], 'tf_idf_1_2_matching', 'TF-IDF (1-2) Matching Score')
-    plot_given_method(ax[8], df, p_values[7], 'tf_idf_1_1_harmonic_mean', 'TF-IDF (1-1) Harmonic Mean')
-    plot_given_method(ax[9], df, p_values[8], 'tf_idf_1_2_harmonic_mean', 'TF-IDF (1-2) Harmonic Mean')
+    plot_given_method(ax[0], df, p_values[0], 'non_latent_cosine_dist', 'Non-Latent Feat\nCosine Dist')
+    plot_given_method(ax[1], df, p_values[1], 'word2vec_cosine_dist', 'Word2Vec\nCosine Dist')
+    plot_given_method(ax[2], df, p_values[2], 'tf_idf_1_1_cosine_dist', 'TF-IDF (1-1)\nCosine Dist')
+    plot_given_method(ax[3], df, p_values[3], 'tf_idf_1_2_cosine_dist', 'TF-IDF (1-2)\nCosine Dist')
+    plot_given_method(ax[4], df, p_values[4], 'tf_idf_1_1_word_app', 'TF-IDF (1-1)\nWord App')
+    plot_given_method(ax[5], df, p_values[5], 'tf_idf_1_2_word_app', 'TF-IDF (1-2)\nWord App')
+    plot_given_method(ax[6], df, p_values[6], 'tf_idf_1_1_matching', 'TF-IDF (1-1)\nMatching Score')
+    plot_given_method(ax[7], df, p_values[7], 'tf_idf_1_2_matching', 'TF-IDF (1-2)\nMatching Score')
+    plot_given_method(ax[8], df, p_values[8], 'tf_idf_1_1_harmonic_mean', 'TF-IDF (1-1)\nHarmonic Mean')
+    plot_given_method(ax[9], df, p_values[9], 'tf_idf_1_2_harmonic_mean', 'TF-IDF (1-2)\nHarmonic Mean')
 
     handles = [Rectangle((0, 0), 1, 1, color=c, ec="k") for c in colors]
-    fig.legend(handles, labels, loc='upper right', bbox_to_anchor=(0.49, 0.45, 0.5, 0.5), fontsize='xx-large')
+    fig.legend(handles, labels, loc='upper right')
 
     fig.suptitle('Method Comparisons', fontsize='xx-large')
     fig.tight_layout()
     plt.show()
+    
+    df.drop(labels=['non_latent_cosine_dist'], axis=1)
