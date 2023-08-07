@@ -720,7 +720,7 @@ Our non-latent feature extraction pipeline currently applies on the content of t
 Our summary extraction extracted most of the correct meaning from the text. However two main issues remained causing it to produce imperfect results:
 \begin{itemize}
   \item Words would be unordered and if read together in a sentence, wouldn't make sense to a human.
-  \item \emph{Junk} such as connectives from poor preprocessing or words not too realted to the article content would be left in the summary. This could be a sign of a ineffective topic extraction method.
+  \item \emph{Junk} such as connectives from poor preprocessing or words not too related to the article content would be left in the summary. This could be a sign of a ineffective topic extraction method.
 \end{itemize}
 
 We believe future research could have looked into better tuned models that synthesized higher quality topic sentences. From a cursory search for \emph{``keyword extractor''} on HuggingFace, we found various pre-trained models using modern transformer methods such as BERT to output keywords. We believe that our method still worked well enough to demonstrate that this could be done but better summaries would have yielded higher quality contextual articles. In addition, we could have also included the title since semantically, the title is supposed to tell the reader what the rest of the article is about.
