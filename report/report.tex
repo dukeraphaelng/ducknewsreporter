@@ -28,6 +28,7 @@
 \usepackage{pgfplots}
 \usepackage{xifthen}% provides \isempty test
 \usepackage{multirow}% multrow for table
+\usepackage{amsmath} % mathematics symbol
 \usepackage[font=small,labelfont=bf]{caption}
 
 \usepackage{caption}
@@ -193,7 +194,7 @@
 
 \tododhruv{Add intro citations}
 
-\gtododhruv{Please add some citations to the introduction}
+% \gtododhruv{Please add some citations to the introduction}
 
 As the distribution of news shifts towards social media, there is a rise in the dissemination of fake news. We define fake news as the creation of information presented as legitimate journalism that describes a fictitious event or fabricates details of an event in an attempt to mislead readers. This phenomenon became a major focal point in journalism during the 2016 US elections with political parties labelling many publications and articles as fake news. There are two huge issues with how this occurred in 2016:
 
@@ -341,7 +342,7 @@ As a novel feature, we investigate the similarity of our input articles to conte
 
 \subsubsection{Summary extraction} \label{section:summary-extraction}
 
-To get the context articles, we need to summarize the main topic of our input article down to at most 10 keywords. We use the Python \verb|gensim|~\cite{py-gensim} library which provides various topic modelling interfaces for text inputs. We use the \verb|ldamodel| which implements Latent Dirichlet Allocation (LDA) to extract a single topic. LDA is a probabilistic model where the idea is you have a number of documents representing some latent topics characterized by a distribution over words. By feeding in the preprocessed sentences of our input article, we are able to get the main themes. We sort the output keywords by the probability they represent the topic then cap the amount of words to 10 at most.
+To get the context articles, we need to summarize the main topic of our input article down to at most 10 keywords. We use the Python \verb|gensim|~\cite{py-gensim} library which provides various topic modelling interfaces for text inputs. We use the \verb|ldamodel| which implements Latent Dirichlet Allocation (LDA) to extract a single topic. LDA is a probabilistic model where the idea is you have a number of documents representing some latent topics characterized by a distribution over words. \gtodojim{Maybe you could dwell a bit more on how LDA works, and why it is suitable for our usecase, I think LDA is not the only model which can extract summary right, and if possible, you can mention in the limitation and future work some other models that we can potentially use instead of LDA} By feeding in the preprocessed sentences of our input article, we are able to get the main themes. We sort the output keywords by the probability they represent the topic then cap the amount of words to 10 at most.
 
 For the scope of our research, we are able to perform manual validation of the summaries extracted to check the summary represented the article content well. Table~\ref{summary-extraction} shows some samples of items in our dataset after applying LDA. We see that while the summaries extracted are not perfect, they still represent the general meaning of the article. Two common issues we saw were:
 \begin{itemize}
@@ -369,7 +370,7 @@ We will discuss the possibility of extracting better summaries using a more robu
 
 \subsubsection{Article scraping} \label{section:article-scraping}
 
-We feed the summary of the input article into Google News and collect the top three articles. We use Google News since it essentially provides a free PageRank algorithm which we can leverage to get the most popular articles during the time period. We will treat the articles we find as Real articles for purposes of comparison, i.e.\ an input article that is very different to our contextual article is likely to be Fake.
+\gtodojim{I think we can also reframe this section as: now that we have the extracted summary, we want to find related articles using those summaries. And then describe how Google PageRank fits our needs and so on, and therefore we use it then describe our methods. Because on a technical level, all we need is a dataset where we can fetch related articles from, and algorithm to look up article using query. GoogleNews satisfies both these requirements, but there could be other services that could do the same thing as well. Also we assume that context articles are REAL so maybe that's related to why we pick GoogleNews over say Brave News Brave Search or something because it might not necessarily be an algorithm that outputs popular things at the top.} We feed the summary of the input article into Google News and collect the top three articles. We use Google News since it essentially provides a free PageRank algorithm which we can leverage to get the most popular articles during the time period. We will treat the articles we find as Real articles for purposes of comparison, i.e.\ an input article that is very different to our contextual article is likely to be Fake.
 
 For our research, we will only manually feed in all summaries for our dataset. Our motivation for this research was to develop a tool that a user could potentially use to figure out if the current news they are reading contains misinformation. We acknowledge there exists APIs that provide either a wrapper around Google News or implement their own news search algorithm that we could have looked into. However, given the size of the dataset and our scope, this was not necessary to demonstrate our system.
 
@@ -419,7 +420,6 @@ Past research by Alsuliman, et. al in~\cite{alsuliman2022social} proposes two di
 \end{quote}
 
 \subsubsection{Similarity metric calculation} \label{section:similarity-metric}
-
 Past research by Alsuliman et al. in~\cite{alsuliman2022social} proposes three different metrics to calculate the similarity between two documents: cosine distance, word appearance (word app), and matching score. In addition, we also propose a third metric being the harmonic mean of the three, to harmonise any statistical difference and incorporate all distributional differences between the measures.
 
 \begin{quote}
@@ -444,18 +444,18 @@ All these metrics are between the range of [0, 1]. Higher values for matching sc
 
 \subsubsection{Similarity metric selection}\label{section:similarity-metric-selection}
 \tododuke{Not sure if this graph should be horizontal or verticle, try horizontal graph with bigger text}
-
-Since we have different similarity metrics, we ought to compare them and select for the one that helps differentiate the \texttt{REAL} and the \texttt{FAKE} articles the best. We will use three methods to aid our selection: $\delta \mu$, Jensen-Shannon Divergence, and ANOVA.
-
-\textbf{$\delta \mu$}, or the difference between the mean of \texttt{REAL} and \texttt{FAKE} articles is a very naive and simplistic measure to compare how differentiated the two distributions are. This measure does not remedy the behaviour of outliers which might significantly shift the mean of the distributions. It also ignores the variance of the distributions. However, it is still a numerically simple metric which would aid us when the distributions are well-formed.
-
-\begin{wrapfigure}{R}{0.5\textwidth}
+% \raggedright
+\begin{wrapfigure}{L}{0.5\textwidth}
   % \vspace*{-20pt}
   \centering
   \includegraphics[width=0.5\textwidth]{img/textual_relevance_2.png}
   \caption{Textual Relevance}
   \label{similarity-metrics}
 \end{wrapfigure}
+
+Since we have different similarity metrics, we ought to compare them and select for the one that helps differentiate the \texttt{REAL} and the \texttt{FAKE} articles the best. We will use three methods to aid our selection: $\delta \mu$, Jensen-Shannon Divergence, and ANOVA.
+
+\boldsymbol{$\delta \mu$}, or the difference between the mean of \texttt{REAL} and \texttt{FAKE} articles is a very naive and simplistic measure to compare how differentiated the two distributions are. This measure does not remedy the behaviour of outliers which might significantly shift the mean of the distributions. It also ignores the variance of the distributions. However, it is still a numerically simple metric which would aid us when the distributions are well-formed.
 
 \textbf{Jensen-Shannon Divergence (JSD)~\cite{scipy}} is based on the Kullback-Leibler Divergence (KL Divergence) to measure the similarity of two probability distributions. It is symmetric, positive, and in the range of [0, 1] with values closer to 0 denoting more similar distributions and closer to 1 more dissimilar distributions. This is a value we hope to maximise. It is given by the formula:
 \[\sqrt{\frac{D(p \parallel m) + D(q \parallel m)}{2}}\]
