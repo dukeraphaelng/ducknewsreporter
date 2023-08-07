@@ -815,7 +815,7 @@ In the project proposal, Duke contributed equally with the team. In the literatu
     \verb|34_Fake| & \small{\articlecontent{34fake}} &trump rage album machine band ha donald music outside year\\
     \bottomrule
   \end{tabular}
-  \caption{Articles we were not able to find context articles for.}
+  \caption{Articles we were not able to find context articles for. Articles like \texttt{10\_Fake} describe a situation that plainly does not happen whereas articles like \texttt{128\_Real} and \texttt{34\_Fake} produces summaries that confuse Google News and don't produce grate articles.}
 \end{table}
 
 \newsection{Word Count Histogram}\label{appendix:word-count-histogram}
@@ -831,9 +831,10 @@ In the project proposal, Duke contributed equally with the team. In the literatu
 \caption{Word count histogram of input (left) and context articles (right)}
 \end{figure}
 
+\pagebreak
 \newsection{Non-Latent Features}\label{appendix:non-latent-feats}
  \begin{longtable}[c]{| >{\centering\arraybackslash}p{.2\textwidth} | >{\centering\arraybackslash}p{.3\textwidth} | >{\centering\arraybackslash}p{.13\textwidth} | >{\centering\arraybackslash}p{.25\textwidth} |}
- \caption{Non-latent feature names (far-right column) and their corresponding category, feature type, and calculation method)}
+ \caption{Non-latent feature names (far-right column) and their corresponding category, feature type, and calculation method}
  \label{fig:non-latent-feats-table}
  \endfirsthead
  \endhead
@@ -922,6 +923,8 @@ In the project proposal, Duke contributed equally with the team. In the literatu
                                    & Flesch Reading Ease                  &                           & div\_flesch\_sum            \\ \hline
 \end{longtable}
 
+
+\pagebreak
 \newsection{Non-latent Feature Pearson Correlation Matrix}\label{appendix:correlation-matrx}
 \begin{figure}[H]
   \centering
@@ -960,7 +963,7 @@ In the project proposal, Duke contributed equally with the team. In the literatu
     \cmidrule{2-4}
     & Max depth & no limit, 3:9:2 & Controls how complex the tree is. A less deeper tree is more regularized.\\
     \cmidrule{2-4}
-    & Max features & $0.3\times \text{n\_features}$, $\sqrt{\text{n\_features}}$, all features & Standard defaults suggested by documentation. Is a regularization control so not all features are considered at each split.\\
+    & Max features & $0.3\times \text{n\_features}$, $\sqrt{\text{n\_features}}$, all features & Standard defaults suggested by documentation. Controls regularization so not all features are considered at each split.\\
     \cmidrule{2-4}
     & Min samples for splitting node & 2:4:1 & Reduce the number of leafs with only one sample of representation to increase regularization.\\
     \midrule
@@ -973,7 +976,7 @@ In the project proposal, Duke contributed equally with the team. In the literatu
     & L1 coefficient & 0:0.4:0.2 & Testing higher regularization. Default is 0.0.\\
     \bottomrule
   \end{tabular}
-  \caption{Table of all the models chosen and the hyperparameters selected for each model. We describe a range of values in the format start:end:step, where start and end are inclusive.}
+  \caption{Table of all the models chosen and the hyperparameters selected for each model. We describe a range of values in the format start:end:step, where start and end are inclusive. Our main focus was to investigate regularization parameters that would better fit our smaller dataset.}
 \end{table}
 
 \end{appendices}
