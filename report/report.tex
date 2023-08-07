@@ -302,7 +302,7 @@ BERT (Bidirectional Encoder Representations from Transformers) is a language rep
 \begin{figure}[h]
   \centering
   \includegraphics[width=\textwidth]{img/non_latent_box_plot.png}
-  \caption{Non Latent Box Plot Features}
+  \caption{Box Plot of Non-Latent Box Plot Features, displaying the Median, Interquartile Range (IQR), Minimum, Maximum, does not display Outliers which would inflate plot size. Each subplot contains features with mean $\mu$ in the corresponding powers of 10.}
   \label{box-plot}
 \end{figure}
 
@@ -450,7 +450,7 @@ $D$ is the KL Divergence and $m$ is the \emph{``point-wise mean of p and q''} \c
 \begin{figure}[h]
   \centering
   \includegraphics[width=\textwidth]{img/textual_relevance_3.png}
-  \caption{Metrics Comparison}
+  \caption{Similarity metrics comparison results. Each plot contains the name of the vectorizer, the similarity metric, and $\delta \mu$, JSD (Jensen-Shannon Distance), and p-value when ANOVA is perform with the metrics as dependent variables against the labels which are independent variables. The red distribution is the dependent variable when the label is label \texttt{FAKE}, and the green distribution is the dependent variable when the label is \texttt{REAL}}
   \label{similarity-metrics}
 \end{figure}
 
@@ -823,12 +823,12 @@ In the project proposal, Duke contributed equally with the team. In the literatu
   \centering
   \includegraphics[width=\linewidth]{img/word_count_input_hist.png}
 \end{subfigure}%
-\caption{Word Count Histogram of Input and Context Articles}
+\caption{Word count histogram of input (left) and context articles (right)}
 \end{figure}
 
 \newsection{Non-Latent Features}\label{appendix:non-latent-feats}
  \begin{longtable}[c]{| >{\centering\arraybackslash}p{.2\textwidth} | >{\centering\arraybackslash}p{.3\textwidth} | >{\centering\arraybackslash}p{.13\textwidth} | >{\centering\arraybackslash}p{.25\textwidth} |}
- \caption{Non-Latent Features (Category, Feature Type, Calculation Method, Feature Name)}
+ \caption{Non-latent feature names (far-right column) and their corresponding category, feature type, and calculation method)}
  \label{fig:non-latent-feats-table}
  \endfirsthead
  \endhead
@@ -921,7 +921,7 @@ In the project proposal, Duke contributed equally with the team. In the literatu
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.8\textwidth]{img/non_latent_corr_matrx.png}
-  \caption{Non-Latent Feature Pearson Correlation Matrix}
+  \caption{Pearson correlation matrix of selected non-latent features (which are red and white in Figure \ref{fig:non-latent-feat-prune}). Brighter areas show higher rate of correlation, and vice-versa. An explanation of features is available in Appendix \ref{appendix:non-latent-feats}}
   \label{fig:correlation-matrx}
 \end{figure}
 
@@ -929,7 +929,7 @@ In the project proposal, Duke contributed equally with the team. In the literatu
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{img/non_latent_feat_prune.png}
-  \caption{Non-Latent Feature Pruning}
+  \caption{Table of features followed by their p-value when ANOVA is performed with features as dependent variables against labels as the independent variable. Features are sorted by their p-value. The table on the right continues from the last row of the left table. The significance level is $\alpha = 0.05$, features with p-value above the threshold is in blue. Features below the level are subjected to correlation clustering algorithm which keeps features with lowest p-value and remove all their correlated features as outlined in Section \ref{section:non-latent-feat}, selected features are in white, whilst removed features are in red.}
   \label{fig:non-latent-feat-prune}
 \end{figure}
 
