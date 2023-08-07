@@ -30,6 +30,7 @@
 \usepackage{multirow}% multrow for table
 \usepackage{amsmath} % mathematics symbol
 \usepackage[font=small,labelfont=bf]{caption}
+\usepackage[titletoc]{appendix}
 
 \usepackage{caption}
 \usepackage{subcaption}
@@ -757,7 +758,8 @@ In the future research could be done to provide an automated API for scraping wh
 \cleardoublepage
 \pagebreak
 
-\appendix
+% \begin{noindent}
+\begin{appendices}
 
 \newsection{Individual contributions}
 
@@ -970,5 +972,8 @@ In the project proposal, Duke contributed equally with the team. In the literatu
   \end{tabular}
   \caption{Table of all the models chosen and the hyperparameters selected for each model. We describe a range of values in the format start:end:step, where start and end are inclusive.}
 \end{table}
+
+\end{appendices}
+% \end{noindent}
 
 \end{document}
