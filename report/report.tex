@@ -222,7 +222,9 @@ We compiled a list of commonly used linguistic features for fake news detection.
 
 Through this research, we have analysed and determined the most effective linguistic features for fake news detection and shown that the use of similarity as a metric is effective in building upon these current metrics to increase accuracy. We have also compared the use of the similarity metric with different machine learning classifiers and discovered that it greatly increases the accuracy of less complex machine learning methods and brings their performance in line with complex models.
 
-\newsection{Related work}
+\gtododhruv{Can you summarise the sections in the article, i.e. something like, not sure if this is a bit plain atm, but maybe Jim or Dhruv will have a better idea?: The structure of our report is as follows: we discuss related work in \ref{section:related_work}, methodologies in \ref{section:methods}, experimental set up in \ref{section:experimental-setup}, results and discussion in \ref{section:results-discussion}, and conclusion in \ref{conclusion}}
+
+\newsection{Related work}\label{section:related_work}
 
 \newsubsection{Similarity Comparison using Titles}
 Methods of similarity comparison have been attempted in a few fake news detection papers. Antoun et al. \cite{antoun2020state}
@@ -236,7 +238,8 @@ This paper forms the basis of our set of similarity metrics and we analyse each 
 \newsubsection{Linguistic and Additional Features}
 Vijayaraghavan et al. \cite{vijayaraghavan2020fake} presents a series of different fake news model alongside useful linguistic features for this task. It addresses preprocessing techniques including the removal of punctuation and stop words which is an effective technique in this domain. It analyses the polarity of news articles and determines that both real and fake news have similar polarity distributions making this an ineffective method of distinguishing between them. It also analyses the part of speech distribution between fake and real news and determines that features such as the number of adverbs and adjectives is higher in fake news but the number of nouns and pronouns is higher in real news. This is because fake news relies on descriptive language to establish facts whereas real news refers to research and experts to infer its legitimacy. Zhou \& Zafarani \cite{zhou2020survey} produced a comprehensive survey on non-latent features which this research refers to extensively in Section \ref{section:non-latent-feat}, along with Garg \& Sharma \cite{garg2022linguistic}, and Horne \& Adali \cite{horne2017}.
 
-\newsection{Methods}
+\newsection{Methods}\label{section:methods}
+This section outlines our preprocessing and tokenisation of the dataset, feature extraction (BERT, non-latent, similarity), feature normalisation, and our model choice (machine learning, neural networks).\\
 
 \begin{minipage}{\textwidth}
   \begin{wrapfigure}{r}{0.65\textwidth}
@@ -485,7 +488,8 @@ The second approach taken for classification was using deep learning as we hypot
 
 We used a very simple structure with 4 hidden layers using the ReLU activation function and an output layer with one neuron and the sigmoid activation function as the task required binary classification. We kept the structure simple due to the small size of the dataset and to prevent overfitting. Additionally, a dropout of 0.2 was added to further prevent overfitting. The dataset was split in a 60:20:20 train, validation, test split to allow for hyperparameter training and binary-crossentropy loss was used. Multiple optimisers were used during training, however, based on the validation accuracy we decided to use Adam as the optimiser.
 
-\newsection{Experimental setup}
+\newsection{Experimental setup}\label{section:experimental-setup}
+This section explores the dataset, performs data analysis, analyses the results of the feature extraction process as applied on the dataset, normalisation results, and the parameter choice for our machine learning models.
 
 \newsubsection{Dataset}\label{section:dataset}
 
@@ -584,7 +588,7 @@ $$F_1 = 2\,\frac{\text{precision}\times\text{recall}}{\text{precision}+\text{rec
 
 This allows for a fair assessment of both the quantity and quality of the predictions in a format that makes it easier to compare both models.
 
-\newsection{Results and discussion}
+\newsection{Results and discussion}\label{section:results-discussion}
 
 \begin{comment}
 For our machine learning models, we observed a increase in accuracy and F1 as we added our higher quality features to the model. Table~\ref{machine-learning-results} shows our results for all models.
@@ -686,7 +690,7 @@ Table \ref{machine-learning-results} shows the results for the four machine lear
 
 \todojim{Add table of parameters of models}
 
-\newsection{Conclusion}
+\newsection{Conclusion}\label{conclusion}
 
 \todoany{Summarise the study and discuss directions for future improvement}
 
