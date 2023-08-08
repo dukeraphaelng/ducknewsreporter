@@ -78,6 +78,12 @@ class Data:
         if self.X_train_valid is None:
             raise Exception("Did not load train_valid set")
         return (self.X_train_valid, self.y_train_valid, self.X_test, self.y_test)
+    
+    @property
+    def all(self):
+        X = np.vstack((self.X_train, self.X_valid, self.X_test))
+        y = np.hstack((self.y_train, self.y_valid, self.y_test))
+        return (X, y)
 
 
 class Pipeline:
