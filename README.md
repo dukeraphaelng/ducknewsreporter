@@ -36,7 +36,9 @@ We include both helper code in `*.py` files and notebooks in `*.ipynb` files. No
 ---
 
 - [EDA.ipynb](src/EDA.ipynb) - Contains all the data analysis done on the dataset and features.
+- [pca_kmeans_analysis.ipynb](src/pca_kmeans_analysis.ipynb) - A notebook that investigates performing pca and kmeans on our features.
 - [machine_learning.ipynb](src/machine_learning.ipynb) - Contains a notebook to run tests for our machine learning models.
+- [deep_learning.ipynb](src/deep_learning.ipynb) - Contains a notebook to run our deep learning model.
 
 ## Running code
 
