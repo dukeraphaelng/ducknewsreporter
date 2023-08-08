@@ -222,7 +222,9 @@ We compiled a list of commonly used linguistic features for fake news detection.
 
 Through this research, we have analysed and determined the most effective linguistic features for fake news detection and shown that the use of similarity as a metric is effective in building upon these current metrics to increase accuracy. We have also compared the use of the similarity metric with different machine learning classifiers and discovered that it greatly increases the accuracy of less complex machine learning methods and brings their performance in line with complex models.
 
-\newsection{Related work}
+\gtododhruv{Can you summarise the sections in the article, i.e. something like, not sure if this is a bit plain atm, but maybe Jim or Dhruv will have a better idea?: The structure of our report is as follows: we discuss related work in \ref{section:related_work}, methodologies in \ref{section:methods}, experimental set up in \ref{section:experimental-setup}, results and discussion in \ref{section:results-discussion}, and conclusion in \ref{conclusion}}
+
+\newsection{Related work}\label{section:related_work}
 
 \newsubsection{Similarity Comparison using Titles}
 Methods of similarity comparison have been attempted in a few fake news detection papers. Antoun et al. \cite{antoun2020state}
@@ -236,7 +238,8 @@ This paper forms the basis of our set of similarity metrics and we analyse each 
 \newsubsection{Linguistic and Additional Features}
 Vijayaraghavan et al. \cite{vijayaraghavan2020fake} presents a series of different fake news model alongside useful linguistic features for this task. It addresses preprocessing techniques including the removal of punctuation and stop words which is an effective technique in this domain. It analyses the polarity of news articles and determines that both real and fake news have similar polarity distributions making this an ineffective method of distinguishing between them. It also analyses the part of speech distribution between fake and real news and determines that features such as the number of adverbs and adjectives is higher in fake news but the number of nouns and pronouns is higher in real news. This is because fake news relies on descriptive language to establish facts whereas real news refers to research and experts to infer its legitimacy. Zhou \& Zafarani \cite{zhou2020survey} produced a comprehensive survey on non-latent features which this research refers to extensively in Section \ref{section:non-latent-feat}, along with Garg \& Sharma \cite{garg2022linguistic}, and Horne \& Adali \cite{horne2017}.
 
-\newsection{Methods}
+\newsection{Methods}\label{section:methods}
+This section outlines our preprocessing and tokenisation of the dataset, feature extraction (BERT, non-latent, similarity), feature normalisation, and our model choice (machine learning, neural networks).\\
 
 \begin{minipage}{\textwidth}
   \begin{wrapfigure}{r}{0.65\textwidth}
@@ -295,16 +298,9 @@ After preprocessing, tokens are then generated based on any whitespace and punct
 \end{table}
 
 \newsubsection{Feature --- BERT embeddings}\label{section:bert}
-BERT (Bidirectional Encoder Representations from Transformers) is a language representation model proposed by Devlin et al \cite{bert}. It is pretrained on BookCorpus and the English Wikipedia using masked language modeling (MLM) and next sentence prediction (NSP). MLM masks some of the input tokens with a training objective to predict the masked token simply based on context, and the model also concatenates two sentences with 50\% chance of being neighbouring sentences, and the model is pre-trained in the NSP layer to predict if the two are indeed neighbours \cite{bert}. BERT obtains SOTA results on several tasks and is suitable for representing document and textual data. Hence, we will be using BERT as the main feature to encode our articles. We will use HuggingFace's 'bert-base-uncased' pretrained model which trains on uncased data. To encode an article, we slice the first 512 tokens of the respective article and pass it through 'bert-base-uncased' and output the CLS token's vector as BERT features for our classification model. The plot in Appendix \ref{appendix:word-count-histogram} shows the length distribution of the articles. We can see that input articles and context articles have means of 1090.58 and 1827.29 repsectively, with 50\% percentile being 583 and 1032 respectively. This means that the input token size of 512 for BERT cannot encode a significant amount of textual information in an article. However, we hypothesis that the 'fake news' quality of an article is at the minimum visible at a range of 512 tokens. In addition, any information not visible in this range will be captured by \textbf{non-latent features} or \textbf{similarity metrics}.
+BERT (Bidirectional Encoder Representations from Transformers) is a language representation model proposed by Devlin et al \cite{bert}. It is pretrained on BookCorpus and the English Wikipedia using masked language modeling (MLM) and next sentence prediction (NSP). MLM masks some of the input tokens with a training objective to predict the masked token simply based on context, and the model also concatenates two sentences with 50\% chance of being neighbouring sentences, and the model is pre-trained in the NSP layer to predict if the two are indeed neighbours \cite{bert}. BERT obtains SOTA results on several tasks and is suitable for representing document and textual data. Hence, we will be using BERT as the main feature to encode our articles. We will use HuggingFace's 'bert-base-uncased' pretrained model which trains on uncased data. To encode an article, we slice the first 512 tokens of the respective article and pass it through 'bert-base-uncased' and output the CLS token's vector as BERT features for our classification model.
 
 \newsubsection{Feature --- Non-latent features} \label{section:non-latent-feat}
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=\textwidth]{img/non_latent_box_plot.png}
-  \caption{Box Plot of Non-Latent Box Plot Features, displaying the Median, Interquartile Range (IQR), Minimum, Maximum, does not display Outliers which would inflate plot size. Each subplot contains features with mean $\mu$ in the corresponding powers of 10.}
-  \label{box-plot}
-\end{figure}
 
 From our literature review and survey, we are able to identify a significant amount of non-latent features \cite{zhou2020survey, garg2022linguistic, horne2017}. After combining features that are similar, and removing features which we cannot calculate due to the need for proprietary softwares (i.e. LIWC), or due to the computational complexity of the algorithms, or related reasons, we are able to identify 81 numerical features suitable for our experiments. After synthesising their categorisations in the original articles, we come up with a grouping of 7 main categories (with their abbreviation in brackets), with each feature being able to calculated with a few methods:
 \begin{itemize}
@@ -317,16 +313,7 @@ From our literature review and survey, we are able to identify a significant amo
   \item Readability (read): different readability indices (e.g. gunning-fog, coleman-liau)
 \end{itemize}
 
-The feature names are designated using the format "\texttt{category}\_\texttt{featureType}\_\texttt{calculationMethod}", where category is the abbreviated \texttt{category}, \texttt{featureType} is the feature type within the category. Table \ref{fig:non-latent-feats-table} contains a full description and explanation of all non-latent features, their category, feature type, and their calculation method. Figure \ref{box-plot} is a box plot of all the non-latent features by their scale of power of 10. The majority of features are between the range of $[10^{-2}, 10^{1}]$. Several quantity and some diversity features are in the higher range of $[10^2, 10^3]$. \gtododuke{We can move parts of this section here and below minus the ANOVA methodology to Non-Latent Results}
-
-We can then apply ANOVA (Analysis of Variance, see \ref{section:similarity-metric-selection} for an overview) on these non-latent features against the labels, and filter for those with a p-value less than the $\alpha$ significance level of 0.05. We identify that the removed features account to almost half of all features, and they include readability indices, the syntax tree depth features, and a few features from other categories, and diversity features are all below $\alpha$. We then apply Pearson correlation amongst the selected features and identify all correlation clusters. The matrix is available in Appendix \ref{appendix:correlation-matrx}. Afterwards, we can apply a selection method on the cluster where we remove all but one with the lowest p-value, specifically, we sort the selected features by p-value in ascending order with the lowest p at the front of the list, we then search for all features which have a correlation of at least $0.95$ and remove them from the current list, and continue until the end. Figure \ref{fig:non-latent-feat-prune} shows our results. After grouping them by their original category, we have the following counts, totalling to 29 features, which we will use for our classification models:
-\begin{itemize}
-  \item Diversity: 9 features
-  \item Quantity: 12 features
-  \item Pronoun: 2 features
-  \item Sentiment: 3 features
-  \item Average: 1 feature
-\end{itemize}
+The feature names are designated using the format "\texttt{category}\_\texttt{featureType}\_\texttt{calculationMethod}", where category is the abbreviated \texttt{category}, \texttt{featureType} is the feature type within the category. Table \ref{fig:non-latent-feats-table} contains a full description and explanation of all non-latent features, their category, feature type, and their calculation method. We can then apply ANOVA (Analysis of Variance, see \ref{section:similarity-metric-selection} for an overview) on these non-latent features against the labels, and filter for those with a p-value less than the $\alpha$ significance level of 0.05. We remove the features with p-value above $\alpha$ and apply Pearson correlation and identify all correlation clusters. Afterwards, we can apply a selection method on the cluster where we remove all but one with the lowest p-value, specifically, we sort the selected features by p-value in ascending order with the lowest p at the front of the list, we then search for all features which have a correlation of at least $0.95$ and remove them from the current list, and continue until the end. These will be our non-latent features for our classification models.
 
 \newsubsection{Feature --- Similarity model}
 
@@ -448,44 +435,18 @@ $D$ is the KL Divergence and $m$ is the \emph{``point-wise mean of p and q''} \c
 
 \textbf{ANOVA (Analysis of Variance)~\cite{anova}} is a statistical method to determine if there are significant differences between the means of groups. We will be performing one-way repeated-measures ANOVA which test for any significant difference between the means of the dependent variables (our non-latent features) among the groups defined by the independent variable (our label of \texttt{REAL} and \texttt{FAKE}) to reject the null hypothesis that the group means(\texttt{FAKE} and \texttt{REAL}) are equal. We reject this hypothesis when the p-value associated with the f-statistic of the respetive feature is below the significant level $\alpha = 0.05$.
 
-\subsubsection{Comparison Results} \label{section:similarity-results}
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=\textwidth]{img/textual_relevance_3.png}
-  \caption{Similarity metrics comparison results. Each plot contains the name of the vectorizer, the similarity metric, and $\delta \mu$, JSD (Jensen-Shannon Distance), and p-value when ANOVA is perform with the metrics as dependent variables against the labels which are independent variables. The red distribution is the dependent variable when the label is label \texttt{FAKE}, and the green distribution is the dependent variable when the label is \texttt{REAL}}
-  \label{similarity-metrics}
-\end{figure}
-
-Figure~\ref{similarity-metrics} shows our results with similarity metrics comparison. A good metric should have the fake (in red) and the real (in green) distributions be somewhat well separated. The brown area indicates the overlapping region. Non-latent Cosine Distance is the worst metric with $0 \delta \mu$, $0.02 JSD$, and $6.10e-01 p$, where the two \texttt{FAKE} and \texttt{REAL} distributions are overlapping each other almost at the same point. Word2vec Cosine Distance and TF-IDF(1-1) also perform quite poorly with $\delta \mu$ of 0.03 and 0.05, JSD of 0.02 and 0.06, and p-value of 1.74e-03 and 2.38e-02 respectively. Both these plots have the \texttt{REAL} distribution shifted further to the right but the distributions still overlap significantly, unlike the Non-Latent Cosine Distance, however, these metrics fall below the typical significance level $\alpha$ of 0.05. Although TF-IDF (1-2) Cosine Distance has a similar $\delta \mu$ and JSD of 0.06 and 0.08 respectively, its p-value is markedly low at 2.81e-05. Word App follows a similar pattern where TF-IDF (1-1) and (1-2) produce distinctly different results of 5.17e-05 and 1.63e-02 in p-value, but similar $\delta \mu$ of 0.13 and JSD of 0.22 and 0.23 respectively. We can conclude that the ngram-range of TF-IDF definitely contribute to marked differences in the metrics output. Matching score metrics have similar $\delta \mu$ of 0.12 and JSD range of [0.23, 0.28] with low p-values of 2.81e-05 and 6.11e-05 respectively. The most significant features however are the harmonic mean, combining the previous metrics, with TF-IDF (1-1) at $\delta \mu = 0.14, JSD = 0.24, p = 1.08e-05$ and TF-IDF (1-2) at $\delta \mu = 0.14, JSD = 0.17, p = 1.11e-05$. Since TF-IDF (1-1) yields more difference between the distributions, we will use this as our definitive similarity metric.
-
-\newsubsection{Feature Normalisation}
-
-We experimented with different feature normalisation techniques across the entire dataset and for specific features. Normalisation was conducted columnwise for each feature so that each feature was normalised individually.
-
-\begin{quote}
-  \textbf{MinMaxScaler:}\quad This was used for features where there was a clear range of values in order to convert these values into the range of 0-1. This was not implemented frequently across our features as they did not have a fixed range of values making this technique ineffective.
-
-  \textbf{StandardScaler:}\quad This was primarily used for linguistic features that did not have a clear range. This technique works by finding the Z-score for each value within the feature where $\text{Z-score} = \frac{X - \mu}{\sigma}$. This is done by first calculating the mean and standard deviation of the feature and then transforming each value into its Z-score.
-
-  \textbf{RobustScaler:}\quad We experimented with this in place of StandardScaler for values prone to outliers. This was done as RobustScaler uses $\text{IQR} = \text{Q3} - \text{Q1}$ instead of the standard deviation in the transformation calculation from StandardScaler. This is used because standard deviation is highly affected by outlier values and this was noticeable in features such as word count context articles.
-\end{quote}
-
-Ultimately, after each scaling technique was applied and the classification was conducted, the results with each type of normalisation and various combinations of them underperformed compared to the original dataset without normalisation. There are a few different reasons why this was the case but after testing various classification models, the most probable reasons are the small size of the dataset used and the lack of appropriate scaling methods available for the linguistic features that rely on counting. Due to this, we decided not to use normalisation for our results.
-
-
 \newsubsection{Model --- Machine learning}\label{section:machine-learning}
 
 We used four state of the art machine learning models (commonly used in fake news detection) to perform our classification. We chose Logistic Regression (LR), Support Vector Machines (SVM), Decision Trees (DT), and XGBoost (XGB). Due to the small size of our dataset, we needed to tune the regularization hyperparameters to ensure our models didn't overfit. In particular, tree-based models such as DT and XGB should be able to fully segment our classes so we need to control the depth of the tree and splitting criteria. Models such as LR and SVM will need to control L2 regularization. In SVM, we will test the type of kernel used.
-
-To find the best hyperparameters, we perform 5-Fold cross validation across 80\% of our dataset and average the validation score. We pick the parameters with the best validation score and test our model with the remaining 20\% of the dataset. The table in the Appendix~\ref{apppendix:machine-learning} shows the hyperparameters tested for each model and a reason for why the ranges were selected.
 
 \newsubsection{Model --- Neural networks}
 
 The second approach taken for classification was using deep learning as we hypothesised that it would be able to find more complex relationships between the large variety of BERT, linguistic, and similarity features. Initially both convolutional neural networks and simple feedforward layers were considered. After analysing the features and noting that they did not have any spacial relation, only the second approach was considered.
 
-We used a very simple structure with 4 hidden layers using the ReLU activation function and an output layer with one neuron and the sigmoid activation function as the task required binary classification. We kept the structure simple due to the small size of the dataset and to prevent overfitting. Additionally, a dropout of 0.2 was added to further prevent overfitting. The dataset was split in a 60:20:20 train, validation, test split to allow for hyperparameter training and binary-crossentropy loss was used. Multiple optimisers were used during training, however, based on the validation accuracy we decided to use Adam as the optimiser.
+We used a very simple structure with 4 hidden layers using the ReLU activation function and an output layer with one neuron and the sigmoid activation function as the task required binary classification. We kept the structure simple due to the small size of the dataset and to prevent overfitting. Additionally, a dropout of 0.2 was added to further prevent overfitting.
 
-\newsection{Experimental setup}
+\newsection{Experimental setup}\label{section:experimental-setup}
+This section explores the dataset, performs data analysis, analyses the results of the feature extraction process as applied on the dataset, normalisation results, and the parameter choice for our machine learning models.
 
 \newsubsection{Dataset}\label{section:dataset}
 
@@ -518,6 +479,38 @@ After extending this dataset with our novel context article scraping and similar
   \caption{A sample of one fake and real article in our dataset. The article ID, title and content are shown in the rows. Both articles are regarding a scandal with Hillary Clinton using a private server to store emails. The fake article reports on an event that never happens whereas the real article reports the true event -- that Clinton was exonerated from criminality.}
   \label{article-samples}
 \end{table}
+
+\subsection{Data Analysis}
+\subsubsection{BERT Encoding and Average Document Length}
+Appendix \ref{appendix:word-count-histogram} shows the length distribution of the articles. We can see that input articles and context articles have means of 1090.58 and 1827.29 repsectively, with 50\% percentile being 583 and 1032 respectively. This means that the input token size of 512 for BERT cannot encode a significant amount of textual information in an article. However, we hypothesis that the 'fake news' quality of an article is at the minimum visible at a range of 512 tokens. In addition, any information not visible in this range will be captured by \textbf{non-latent features} or \textbf{similarity metrics}.
+
+\subsubsection{Non-Latent Feature Selection Analysis}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{img/non_latent_box_plot.png}
+  \caption{Box Plot of Non-Latent Box Plot Features, displaying the Median, Interquartile Range (IQR), Minimum, Maximum, does not display Outliers which would inflate plot size. Each subplot contains features with mean $\mu$ in the corresponding powers of 10.}
+  \label{box-plot}
+\end{figure}
+
+Figure \ref{box-plot} is a box plot of all the non-latent features by their scale of power of 10. The majority of features are between the range of $[10^{-2}, 10^{1}]$. Several quantity and some diversity features are in the higher range of $[10^2, 10^3]$. After applying ANOVA, we identify that the removed features account to almost half of all features, and they include readability indices, the syntax tree depth features, and a few features from other categories, and diversity features are all below $\alpha$. Subsequently, we create a Pearson correlation matrix for features with p-value below $\alpha$, resulting in the matrix in Appendix \ref{appendix:correlation-matrx}. We then apply the algorithm to cluster correlations and keep only the one with lowest p-value as outlined in Section \ref{section:non-latent-feat}. Figure \ref{fig:non-latent-feat-prune} shows our results. After grouping them by their original category, we have the following counts, totalling to 29 features, which we will use for our classification models:
+\begin{itemize}
+  \item Diversity: 9 features
+  \item Quantity: 12 features
+  \item Pronoun: 2 features
+  \item Sentiment: 3 features
+  \item Average: 1 feature
+\end{itemize}
+
+\subsubsection{Similarity Metrics Comparison Results} \label{section:similarity-results}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{img/textual_relevance_3.png}
+  \caption{Similarity metrics comparison results. Each plot contains the name of the vectorizer, the similarity metric, and $\delta \mu$, JSD (Jensen-Shannon Distance), and p-value when ANOVA is perform with the metrics as dependent variables against the labels which are independent variables. The red distribution is the dependent variable when the label is label \texttt{FAKE}, and the green distribution is the dependent variable when the label is \texttt{REAL}}
+  \label{similarity-metrics}
+\end{figure}
+
+Figure~\ref{similarity-metrics} shows our results with similarity metrics comparison. A good metric should have the fake (in red) and the real (in green) distributions be somewhat well separated. The brown area indicates the overlapping region. Non-latent Cosine Distance is the worst metric with $0 \delta \mu$, $0.02 JSD$, and $6.10e-01 p$, where the two \texttt{FAKE} and \texttt{REAL} distributions are overlapping each other almost at the same point. Word2vec Cosine Distance and TF-IDF(1-1) also perform quite poorly with $\delta \mu$ of 0.03 and 0.05, JSD of 0.02 and 0.06, and p-value of 1.74e-03 and 2.38e-02 respectively. Both these plots have the \texttt{REAL} distribution shifted further to the right but the distributions still overlap significantly, unlike the Non-Latent Cosine Distance, however, these metrics fall below the typical significance level $\alpha$ of 0.05. Although TF-IDF (1-2) Cosine Distance has a similar $\delta \mu$ and JSD of 0.06 and 0.08 respectively, its p-value is markedly low at 2.81e-05. Word App follows a similar pattern where TF-IDF (1-1) and (1-2) produce distinctly different results of 5.17e-05 and 1.63e-02 in p-value, but similar $\delta \mu$ of 0.13 and JSD of 0.22 and 0.23 respectively. We can conclude that the ngram-range of TF-IDF definitely contribute to marked differences in the metrics output. Matching score metrics have similar $\delta \mu$ of 0.12 and JSD range of [0.23, 0.28] with low p-values of 2.81e-05 and 6.11e-05 respectively. The most significant features however are the harmonic mean, combining the previous metrics, with TF-IDF (1-1) at $\delta \mu = 0.14, JSD = 0.24, p = 1.08e-05$ and TF-IDF (1-2) at $\delta \mu = 0.14, JSD = 0.17, p = 1.11e-05$. Since TF-IDF (1-1) yields more difference between the distributions, we will use this as our definitive similarity metric.
+
 
 \newsubsection{Data Analysis Using PCA and KMeans}
 
@@ -569,6 +562,26 @@ Whereas in Figure \ref{pca_2}, there is a clear grouping of values for fake data
 
 This indicates that the features selected are effective in separating the dataset into distinct fake and real clusters.
 
+\newsubsection{Feature Normalisation}
+
+We experimented with different feature normalisation techniques across the entire dataset and for specific features. Normalisation was conducted columnwise for each feature so that each feature was normalised individually.
+
+\begin{quote}
+  \textbf{MinMaxScaler:}\quad This was used for features where there was a clear range of values in order to convert these values into the range of 0-1. This was not implemented frequently across our features as they did not have a fixed range of values making this technique ineffective.
+
+  \textbf{StandardScaler:}\quad This was primarily used for linguistic features that did not have a clear range. This technique works by finding the Z-score for each value within the feature where $\text{Z-score} = \frac{X - \mu}{\sigma}$. This is done by first calculating the mean and standard deviation of the feature and then transforming each value into its Z-score.
+
+  \textbf{RobustScaler:}\quad We experimented with this in place of StandardScaler for values prone to outliers. This was done as RobustScaler uses $\text{IQR} = \text{Q3} - \text{Q1}$ instead of the standard deviation in the transformation calculation from StandardScaler. This is used because standard deviation is highly affected by outlier values and this was noticeable in features such as word count context articles.
+\end{quote}
+
+Ultimately, after each scaling technique was applied and the classification was conducted, the results with each type of normalisation and various combinations of them underperformed compared to the original dataset without normalisation. There are a few different reasons why this was the case but after testing various classification models, the most probable reasons are the small size of the dataset used and the lack of appropriate scaling methods available for the linguistic features that rely on counting. Due to this, we decided not to use normalisation for our results.
+
+\newsubsection{Model --- Machine learning}
+To find the best hyperparameters, we perform 5-Fold cross validation across 80\% of our dataset and average the validation score. We pick the parameters with the best validation score and test our model with the remaining 20\% of the dataset. The table in the Appendix~\ref{apppendix:machine-learning} shows the hyperparameters tested for each model and a reason for why the ranges were selected.
+
+\newsubsection{Model --- Neural networks}
+The dataset was split in a 60:20:20 train, validation, test split to allow for hyperparameter training and binary-crossentropy loss was used. Multiple optimisers were used during training, however, based on the validation accuracy we decided to use Adam as the optimiser.
+
 \newsubsection{Evaluation metrics}\label{section:eval}
 
 To evaluate our classification models, we will use accuracy and F1 score. These metrics are commonly used for binary classification problems as well as in the misinformation detection domain. When referring to these metrics, we will label real articles as positive and fake articles as negative.
@@ -584,7 +597,7 @@ $$F_1 = 2\,\frac{\text{precision}\times\text{recall}}{\text{precision}+\text{rec
 
 This allows for a fair assessment of both the quantity and quality of the predictions in a format that makes it easier to compare both models.
 
-\newsection{Results and discussion}
+\newsection{Results and discussion}\label{section:results-discussion}
 
 \begin{comment}
 For our machine learning models, we observed a increase in accuracy and F1 as we added our higher quality features to the model. Table~\ref{machine-learning-results} shows our results for all models.
@@ -686,7 +699,7 @@ Table \ref{machine-learning-results} shows the results for the four machine lear
 
 \todojim{Add table of parameters of models}
 
-\newsection{Conclusion}
+\newsection{Conclusion}\label{conclusion}
 
 \todoany{Summarise the study and discuss directions for future improvement}
 
