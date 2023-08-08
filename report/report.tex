@@ -186,6 +186,7 @@
 
 \clearpage
 
+\setcounter{tocdepth}{2} % TOC only up to subsections
 \tableofcontents
 \cleardoublepage
 \pagebreak
@@ -614,6 +615,8 @@ For our analysis, we will be comparing the top 3 performing machine learning met
   \caption{Accuracy and F1-score metrics for top performing models across different features}
   \label{accuracy_graph}
 \end{figure}
+
+\tododhruv{I changed the comment from the tutor to remove "Model 1". Could you fix this graph so the headings are BERT, BERT+Non-Latent, BERT + Non-Latent + Similarity. See my ML results table.}
 
 Figure \ref{accuracy_graph} presents the classification results. As hypothesised from dataset analysis with PCA, only using BERT does not perform well. With a testing accuracy around 50\% for each classifier, it is simply random guessing on the data. This is used as the baseline for our analysis as it is does incorporate any of our novel contribution to this knowledge domain.
 
