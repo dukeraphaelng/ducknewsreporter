@@ -298,7 +298,7 @@ After preprocessing, tokens are then generated based on any whitespace and punct
 \end{table}
 
 \newsubsection{Feature --- BERT embeddings}\label{section:bert}
-BERT (Bidirectional Encoder Representations from Transformers) is a language representation model proposed by Devlin et al \cite{bert}. It is pretrained on BookCorpus and the English Wikipedia using masked language modeling (MLM) and next sentence prediction (NSP). MLM masks some of the input tokens with a training objective to predict the masked token simply based on context, and the model also concatenates two sentences with 50\% chance of being neighbouring sentences, and the model is pre-trained in the NSP layer to predict if the two are indeed neighbours \cite{bert}. BERT obtains SOTA results on several tasks and is suitable for representing document and textual data. Hence, we will be using BERT as the main feature to encode our articles. We will use HuggingFace's 'bert-base-uncased' pretrained model which trains on uncased data. To encode an article, we truncate it to the first 512 tokens pass it through 'bert-base-uncased' and output the CLS token's vector as BERT features for our classification model. Due to this truncation, the BERT encoding won't be able to capture the entire article content. However, we hypothesis that the 'fake news' quality of an article is at the minimum visible at a range of 512 tokens (see BERT Features in Section \ref{limitation:bert-features} for further discussion). In addition, any information not visible in this range will be captured by \textbf{non-latent features} or \textbf{similarity metrics}. 
+BERT (Bidirectional Encoder Representations from Transformers) is a language representation model proposed by Devlin et al \cite{bert}. It is pretrained on BookCorpus and the English Wikipedia using masked language modeling (MLM) and next sentence prediction (NSP). MLM masks some of the input tokens with a training objective to predict the masked token simply based on context, and the model also concatenates two sentences with 50\% chance of being neighbouring sentences, and the model is pre-trained in the NSP layer to predict if the two are indeed neighbours \cite{bert}. BERT obtains SOTA results on several tasks and is suitable for representing document and textual data. Hence, we will be using BERT as the main feature to encode our articles. We will use HuggingFace's 'bert-base-uncased' pretrained model which trains on uncased data. To encode an article, we truncate it to the first 512 tokens pass it through 'bert-base-uncased' and output the CLS token's vector as BERT features for our classification model. Due to this truncation, the BERT encoding won't be able to capture the entire article content. However, we hypothesis that the 'fake news' quality of an article is at the minimum visible at a range of 512 tokens (see BERT Features in Section \ref{limitation:bert-features} for further discussion). In addition, any information not visible in this range will be captured by \textbf{non-latent features} or \textbf{similarity metrics}.
 
 \newsubsection{Feature --- Non-latent features} \label{section:non-latent-feat}
 From our literature review and survey, we are able to identify a significant amount of non-latent features \cite{zhou2020survey, garg2022linguistic, horne2017}. After combining features that are similar, and removing features which we cannot calculate due to the need for proprietary softwares (i.e. LIWC), or due to the computational complexity of the algorithms, or related reasons, we are able to identify 81 numerical features suitable for our experiments. After synthesising their categorisations in the original articles, we come up with a grouping of 7 main categories (with their abbreviation in brackets), with each feature being able to calculated with a few methods:
@@ -466,11 +466,11 @@ We used a very simple structure with 4 hidden layers using the ReLU activation f
 
 \newsubsection{Dataset}\label{section:dataset}
 
-For our research, we use the \verb|FakeNewsData| dataset collated by Horne and Adali in~\cite{horne2017} on research regarding fake news in the 2016 presidential elections. This dataset contains two subsets, \emph{``Buzzfeed Political News''}, and \emph{``Random Political News''}. We make use of the \emph{Buzzfeed} subset since this contains long form text articles that are binary categorized in with Fake and Real labels. The \emph{Random} subset contains an extra label, Satire, which is out of scope for our research.
+For our research, we use the \verb|FakeNewsData| dataset collated by Horne \& Adali in~\cite{horne2017} on research regarding fake news in the 2016 presidential elections. This dataset contains two subsets, \emph{``Buzzfeed Political News''}, and \emph{``Random Political News''}. We make use of the \emph{Buzzfeed} subset since this contains long form text articles that are binary categorized in with Fake and Real labels. The \emph{Random} subset contains an extra label, Satire, which is out of scope for our research.
 
 The original dataset was collated by Craig Silverman (BuzzFeed News Editor) in an article~\cite{dataset-buzzfeed} analyzing fake news. The analysis concentrates on the Facebook engagement on real and fake news articles shared to the social media website. Various keywords related to events during the election were searched and articles with highest engagement were collected. A ground truth was assigned by manual analysis using a list of known fake and hyperpartisan news sites. A details description of their process can be found in their article.
 
-Following BuzzFeed's analysis, Horne extracted the content and title from the articles and formed the dataset. In total, there were 53 real and 48 fake articles. Notable events during the election such as Donald Trump's campaign and various Hillary Clinton scandals and rumors were features in the articles.
+Following BuzzFeed's analysis, Horne \& Adali extracted the content and title from the articles and formed the dataset. In total, there were 53 real and 48 fake articles. Notable events during the election such as Donald Trump's campaign and various Hillary Clinton scandals and rumors were features in the articles.
 
 After extending this dataset with our novel context article scraping and similarity methods, we used a 60/20/20 train/validation/test set. This was stratified and randomized to ensure the best results. An example of items in our dataset can be found in Table~\ref{article-samples}.
 
@@ -501,15 +501,14 @@ After extending this dataset with our novel context article scraping and similar
 To evaluate our classification models, we will use accuracy and F1 score. These metrics are commonly used for binary classification problems as well as in the misinformation detection domain. When referring to these metrics, we will label real articles as positive and fake articles as negative.
 
 Accuracy is measured as the proportion of the total number of correctly classified samples over the total count of samples. Mathematically this is represented as
-$$\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}.$$
-
-Accuracy is an effective metric for this analysis as it is a holistic measure of the model's ability to identify a real article as real and a fake article as fake, which is the core component of the problem of fake news detection.
+$$\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN},$$
+where $TP,TN,FP,FN$ refers to the true and false positive and negative. Accuracy is an effective metric for this analysis as it is a holistic measure of the model's ability to identify a real article as real and a fake article as fake, which is the core component of the problem of fake news detection.
 Our dataset is quite balanced so this will be a good general first step measure.
 
 Recall refers to how likely the model is able to identify an article is real when its ground truth is real. Precision is a measure of the proportion of all articles the model predicts to be real that have a ground truth of real. As such, recall is a measure of the quantity of the predictions whereas precision is a measure of the quality of the predictions. We are focusing on F1-score as it is the harmonic mean of recall and precision where
 $$F_1 = 2\,\frac{\text{precision}\times\text{recall}}{\text{precision}+\text{recall}}.$$
 
-This allows for a fair assessment of both the quantity and quality of the predictions in a format that makes it easier to compare both models.
+This allows for a fair assessment of both the quantity and quality of the predictions especically in imbalanced datasets. While our dataset is mostly balanced, we still output this metric to compare the model's performance on our positive class.
 
 \newsection{Results and discussion}\label{section:results-discussion}
 
@@ -700,7 +699,7 @@ Table \ref{machine-learning-results} shows the results for the four machine lear
 
 First and foremost, we thank Professor Yang Song and Maurice Pagnucco, and Wenbin Wang, for providing various insights and suggestions to our research.
 
-We thank Horne and Adali et al. for providing the base dataset in their research~\cite{horne2017} to which we provided extensions to. We also acknowledge all related works which we have used to experiment with our features.
+We thank Horne \& Adali for providing the base dataset in their research~\cite{horne2017} to which we provided extensions to. We also acknowledge all related works which we have used to experiment with our features.
 
 Lastly the team has used open source software as part of developing our software. The licenses and links to the open source projects have been included in and \verb|ATTRIBUTIONS| file which has been distributed alongside this report.
 
