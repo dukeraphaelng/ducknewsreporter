@@ -302,18 +302,34 @@ After preprocessing, tokens are then generated based on any whitespace and punct
 BERT (Bidirectional Encoder Representations from Transformers) is a language representation model proposed by Devlin et al \cite{bert}. It is pretrained on BookCorpus and the English Wikipedia using masked language modeling (MLM) and next sentence prediction (NSP). MLM masks some of the input tokens with a training objective to predict the masked token simply based on context, and the model also concatenates two sentences with 50\% chance of being neighbouring sentences, and the model is pre-trained in the NSP layer to predict if the two are indeed neighbours \cite{bert}. BERT obtains SOTA results on several tasks and is suitable for representing document and textual data. Hence, we will be using BERT as the main feature to encode our articles. We will use HuggingFace's 'bert-base-uncased' pretrained model which trains on uncased data. To encode an article, we truncate it to the first 512 tokens pass it through 'bert-base-uncased' and output the CLS token's vector as BERT features for our classification model. Due to this truncation, the BERT encoding won't be able to capture the entire article content. However, we hypothesis that the 'fake news' quality of an article is at the minimum visible at a range of 512 tokens (see BERT Features in Section \ref{limitation:bert-features} for further discussion). In addition, any information not visible in this range will be captured by \textbf{non-latent features} or \textbf{similarity metrics}.
 
 \newsubsection{Feature --- Non-latent features} \label{section:non-latent-feat}
-From our literature review and survey, we are able to identify a significant amount of non-latent features \cite{zhou2020survey, garg2022linguistic, horne2017}. After combining features that are similar, and removing features which we cannot calculate due to the need for proprietary softwares (i.e. LIWC), or due to the computational complexity of the algorithms, or related reasons, we are able to identify 81 numerical features suitable for our experiments. After synthesising their categorisations in the original articles, we come up with a grouping of 7 main categories (with their abbreviation in brackets), with each feature being able to calculated with a few methods:
-\begin{itemize}
-  \item Diversity (div): number of unique words, or percentage of all unique words of a particular part of speech (e.g. noun, verb)
-  \item Quantity (quant): number of words, or percentage of all words of a particular part of speech or linguistic unit (e.g. noun, adjective, quote)
-  \item Sentiment (senti): number of linguistic features denoting sentiment (e.g. exclamation mark, all-cap words), or sentiment measurement (polarity, subjectivity)
-  \item Pronoun (pron): number of pronouns of a specific class (e.g. first person singular pronoun: I, me, my, mine)
-  \item Average (avg): average number of linguistic unit \texttt{a} per linguistic unit \texttt{b} (e.g. characters per word)
-  \item (Median) Syntax Tree Depth (med\_st): the median syntax tree depth of a given unit (e.g. median noun phrase syntax tree depth)
-  \item Readability (read): different readability indices (e.g. gunning-fog, coleman-liau)
-\end{itemize}
+From our literature review and survey, we are able to identify a significant amount of non-latent features \cite{zhou2020survey, garg2022linguistic, horne2017}. After combining features that are similar, and removing features which we cannot calculate due to the need for proprietary softwares (i.e. LIWC), or due to the computational complexity of the algorithms, or related reasons, we are able to identify 81 numerical features suitable for our experiments. Table~\ref{feature-categories} shows the 7 main categories of our features.
 
-The feature names are designated using the format "\texttt{category}\_\texttt{featureType}\_\texttt{calculationMethod}", where category is the abbreviated \texttt{category}, \texttt{featureType} is the feature type within the category. Table \ref{fig:non-latent-feats-table} contains a full description and explanation of all non-latent features, their category, feature type, and their calculation method. We can then apply ANOVA (Analysis of Variance, see \ref{section:similarity-metric-selection} for an overview) on these non-latent features against the labels, and filter for those with a p-value less than the $\alpha$ significance level of 0.05. We remove the features with p-value above $\alpha$ and apply Pearson correlation and identify all correlation clusters. Afterwards, we can apply a selection method on the cluster where we remove all but one with the lowest p-value, specifically, we sort the selected features by p-value in ascending order with the lowest p at the front of the list, we then search for all features which have a correlation of at least $0.95$ and remove them from the current list, and continue until the end. These will be our non-latent features for our classification models.
+\begin{table}[H]
+  \centering
+  \begin{tabular}{cp{7cm}L{3cm}}
+    \toprule
+    Type & Description & Examples\\
+    \midrule
+    Diversity & Number of unique words, or percentage of all unique words of a particular part of speech & Noun, verb\\
+    \midrule
+    Quantity & Number of words, or percentage of all words of a particular part of speech or linguistic unit & Noun, adjective, quote\\
+    \midrule
+    Sentiment & Number of linguistic features denoting sentiment & Exclamation mark, all-cap words, polarity, subjectivity\\
+    \midrule
+    Pronoun & Number of pronouns of a specific class & First person singular pronoun: I, me, my, mine\\
+    \midrule
+    Average & Average number of linguistic unit per other linguistic unit & Characters per word\\
+    \midrule
+    Syntax Tree Depth & The median syntax tree depth of a given unit & Median noun phrase syntax tree depth \\
+    \midrule
+    Readability & Measures complexity and how interpretable a text is & Gunning-Fog, Coleman-Liau\\
+    \bottomrule
+  \end{tabular}
+  \caption{The category that our 81 features fall under along with a description and examples.}
+  \label{feature-categories}
+\end{table}
+
+We display all our features including our internal names in Table~\ref{fig:non-latent-feats-table}. Using the features, we apply ANOVA (Analysis of Variance, see \ref{section:similarity-metric-selection} for an overview) and filter for those with a p-value less than the $\alpha$ significance level of 0.05. We remove the features with p-value above $\alpha$ and apply Pearson correlation and identify all correlation clusters. Afterwards, we can apply a selection method on the cluster where we remove all but one with the lowest p-value, specifically, we sort the selected features by p-value in ascending order with the lowest p at the front of the list, we then search for all features which have a correlation of at least $0.95$ and remove them from the current list, and continue until the end. These will be our non-latent features for our classification models.
 
 \newsubsection{Feature --- Similarity model}
 
@@ -512,14 +528,10 @@ This allows for a fair assessment of both the quantity and quality of the predic
 
 \subsection{Feature Analysis}
 \subsubsection{Non-Latent Feature Selection}
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=\textwidth]{img/non_latent_box_plot.png}
-  \caption{Box Plot of Non-Latent Box Plot Features, displaying the Median, Interquartile Range (IQR), Minimum, Maximum, does not display Outliers which would inflate plot size. Each subplot contains features with mean $\mu$ in the corresponding powers of 10.}
-  \label{box-plot}
-\end{figure}
 
-Figure \ref{box-plot} is a box plot of all the non-latent features by their scale of power of 10. The majority of features are between the range of $[10^{-2}, 10^{1}]$. Several quantity and some diversity features are in the higher range of $[10^2, 10^3]$. After applying ANOVA, we identify that the removed features account to almost half of all features, and they include readability indices, the syntax tree depth features, and a few features from other categories, and diversity features are all below $\alpha$. Subsequently, we create a Pearson correlation matrix for features with p-value below $\alpha$, resulting in the matrix in Appendix \ref{appendix:correlation-matrx}. We then apply the algorithm to cluster correlations and keep only the one with lowest p-value as outlined in Section \ref{section:non-latent-feat}. Figure \ref{fig:non-latent-feat-prune} shows our results. After grouping them by their original category, we have the following counts, totalling to 29 features, which we will use for our classification models:
+We see that the majority of our features have a value that falls into the range of $0.1~10$. Several quantity and some diversity features are in the higher range of $100~1000$. A box plot showing the means and standard deviations of all our features can be found in Figure~\ref{appendix:feature-box-plot} in the Appendix.
+
+After applying ANOVA, we identify that the removed features account to almost half of all features, and they include readability indices, the syntax tree depth features, and a few features from other categories, and diversity features are all below $\alpha$. Subsequently, we create a Pearson correlation matrix for features with p-value below $\alpha$, resulting in the matrix in Appendix \ref{appendix:correlation-matrx}. We then apply the algorithm to cluster correlations and keep only the one with lowest p-value as outlined in Section \ref{section:non-latent-feat}. Figure \ref{fig:non-latent-feat-prune} shows our results. After grouping them by their original category, we have the following counts, totalling to 29 features, which we will use for our classification models:
 \begin{itemize}
   \item Diversity: 9 features
   \item Quantity: 12 features
@@ -930,6 +942,12 @@ In the project proposal, Duke contributed equally with the team. In the literatu
                                    & Flesch Reading Ease                  &                           & div\_flesch\_sum            \\ \hline
 \end{longtable}
 
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{img/non_latent_box_plot.png}
+  \caption{Box Plot of Non-Latent Box Plot Features, displaying the Median, Interquartile Range (IQR), Minimum, Maximum, does not display Outliers which would inflate plot size. Each subplot contains features with mean $\mu$ in the corresponding powers of 10.}
+  \label{appendix:feature-box-plot}
+\end{figure}
 
 \pagebreak
 \newsection{Non-latent Feature Pearson Correlation Matrix}\label{appendix:correlation-matrx}
