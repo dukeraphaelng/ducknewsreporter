@@ -430,9 +430,9 @@ Past research by Alsuliman et al. in~\cite{alsuliman2022social} proposes three d
   \[\frac{sum(vec(input_{unique} \cap context_{unique}))}{sum(vec(context_{unique}))}\]
 
   \textbf{Harmonic mean~\cite{harmonic_mean}:}\quad Calculated by the following formula :
-  \[H(x_1, x_2, ... x_n) = \frac{n}{\sum^n_{i=1}\frac{1}{x_i}}\]
+  \[\bar{x}_H = \frac{n}{\sum^n_{i=1}\frac{1}{x_i}}\]
   When $n = 3$, $x_1 = c$ is the cosine distance, $x_2 = w$ is the word app, and $x_3 = m$ is the matching score, we have the following formula:
-  \[H = \frac{n}{\frac{1}{c} + \frac{1}{w} + \frac{1}{m}}\]
+  \[\bar{x}_H = \frac{n}{\frac{1}{c} + \frac{1}{w} + \frac{1}{m}}\]
 \end{quote}
 
 All these metrics are between the range of [0, 1]. Higher values for matching score and word app denote higher similarity, and vice verse. This is the opposite for cosine distance. Since we scrape up to three context articles per input article, we can apply \emph{similarity metric smoothing} by calculating the similarity metric for the input article as the average of the similarity between the input article and each of the context article to reduce variance.
@@ -442,11 +442,11 @@ Since we have different similarity metrics, we ought to compare them and select 
 
 \boldsymbol{$\delta \mu$}, or the difference between the mean of \texttt{REAL} and \texttt{FAKE} articles is a very naive and simplistic measure to compare how differentiated the two distributions are. This measure does not remedy the behaviour of outliers which might significantly shift the mean of the distributions. It also ignores the variance of the distributions. However, it is still a numerically simple metric which would aid us when the distributions are well-formed.
 
-\textbf{Jensen-Shannon Divergence (JSD)~\cite{scipy}} is based on the Kullback-Leibler Divergence (KL Divergence) to measure the similarity of two probability distributions. It is symmetric, positive, and in the range of [0, 1] with values closer to 0 denoting more similar distributions and closer to 1 more dissimilar distributions. This is a value we hope to maximise. It is given by the formula:
+\textbf{Jensen-Shannon Divergence (JSD)~\cite{jsd}} is a symmetrization of the Kullback-Leibler Divergence (KL Divergence) to compute the metric distance between two probability distributions \cite{scipy, jsd}. It is bounded between 0 and 1 with values closer to 0 denoting more similar distributions and closer to 1 more dissimilar distributions. This is a value we hope to maximise. We will use the square root of the Jensen-Shannon divergence to normalise p and q, which is given by the formula \cite{scipy}:
 \[\sqrt{\frac{D(p \parallel m) + D(q \parallel m)}{2}}\]
 $D$ is the KL Divergence and $m$ is the \emph{``point-wise mean of p and q''} \cite{scipy}.
 
-\textbf{ANOVA (Analysis of Variance)} is a statistical method to determine if there are significant differences between the means of groups \cite{anova}. We will be performing one-way repeated measure ANOVA which test for any significant difference between the means of the dependent variables (our non-latent features) among the groups defined by the independent variable (our label of \texttt{REAL} and \texttt{FAKE}) to reject the null hypothesis that the group means(\texttt{FAKE} and \texttt{REAL}) are equal. We reject this hypothesis when the p-value associated with the f-statistic of the respetive feature is below the significant level $\alpha = 0.05$.
+\textbf{ANOVA (Analysis of Variance)~\cite{anova}} is a statistical method to determine if there are significant differences between the means of groups. We will be performing one-way repeated-measures ANOVA which test for any significant difference between the means of the dependent variables (our non-latent features) among the groups defined by the independent variable (our label of \texttt{REAL} and \texttt{FAKE}) to reject the null hypothesis that the group means(\texttt{FAKE} and \texttt{REAL}) are equal. We reject this hypothesis when the p-value associated with the f-statistic of the respetive feature is below the significant level $\alpha = 0.05$.
 
 \subsubsection{Comparison Results} \label{section:similarity-results}
 \begin{figure}[h]
