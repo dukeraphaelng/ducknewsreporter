@@ -527,14 +527,14 @@ This allows for a fair assessment of both the quantity and quality of the predic
 
 We see that the majority of our features have a value that falls into the range of $0.1~10$. Several quantity and some diversity features are in the higher range of $100~1000$. A box plot showing the means and standard deviations of all our features can be found in Figure~\ref{appendix:feature-box-plot} in the Appendix.
 
-After applying ANOVA, we identify that the removed features account to almost half of all features, and they include readability indices, the syntax tree depth features, and a few features from other categories, and diversity features are all below $\alpha$. Subsequently, we create a Pearson correlation matrix for features with p-value below $\alpha$, resulting in the matrix in Appendix \ref{appendix:correlation-matrx}. We then apply the algorithm to cluster correlations and keep only the one with lowest p-value as outlined in Section \ref{section:non-latent-feat}. Figure \ref{fig:non-latent-feat-prune} shows our results. After grouping them by their original category, we have the following counts, totalling to 29 features, which we will use for our classification models:
-\begin{itemize}
-  \item Diversity: 9 features
-  \item Quantity: 12 features
-  \item Pronoun: 2 features
-  \item Sentiment: 3 features
-  \item Average: 1 feature
-\end{itemize}
+After applying ANOVA, we identify that the removed features account to almost half of all features, and they include readability indices, the syntax tree depth features, and a few features from other categories, and diversity features are all below $\alpha$. Subsequently, we create a Pearson correlation matrix for features with p-value below $\alpha$, resulting in the matrix in Appendix \ref{appendix:correlation-matrx}. We then apply the algorithm to cluster correlations and keep only the one with lowest p-value as outlined in Section \ref{section:non-latent-feat}. Figure \ref{fig:non-latent-feat-prune} shows our results. After grouping them by their original category, we have 29 features shown in Figure~\ref{fig:count-features}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics*[width=0.6\textwidth]{img/count_features.png}
+  \caption{The number of features we have for each category.}
+  \label{fig:count-features}
+\end{figure}
 
 \subsubsection{Similarity Metrics Comparison} \label{section:similarity-results}
 \begin{figure}[h]
