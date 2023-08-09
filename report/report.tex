@@ -217,9 +217,9 @@ Our approach improves upon existing approaches that focus on the first and secon
 
 We compiled a list of commonly used linguistic features for fake news detection. Multiple different pairings of features were formed and analysis was conducted to determine the most effective linguistic features for the task. This takes existing research into fake news detection and puts our model in line with current methods. A new feature - lexicographical similarity - is used to achieve the third criterion above. At a high level, this feature compares the queried article to other articles on Google news which are at the top of Google's searches and applies various algorithms based on the individual words shared between the articles. As these Google news articles have high PageRank scores, the model can be confident that they are real articles and it compares the similarity of the content between the queries article and each of these top searched articles. This is done as a way for the model to infer context before making a judgement on an article's legitimacy. This approach brings out model in line with the way humans manually fact-check articles which usually involves finding known trustworthy sources and comparing the content between the articles to determine whether the queried one is consistent with the trustworthy ones.
 
-Through this research, we have analysed and determined the most effective linguistic features for fake news detection and shown that the use of similarity as a metric is effective in building upon these current metrics to increase accuracy. We have also compared the use of the similarity metric with different machine learning classifiers and discovered that it greatly increases the accuracy of less complex machine learning methods and brings their performance in line with complex models.
+Section \ref{section:related_work} discusses related work in the study of automated fake news detection. It includes research on existing similarity comparison models and linguistic features useful for this task. Section \ref{section:methods} covers the methodology of our approach. Specifically, it covers preprocessing the input and queried articles, the BERT, linguistic and similarity feature calculations, and classification with machine learning and neural networks. Section \ref{section:experimental-setup} analyses the experimental setup and explains the reasoning behind the evaluation metrics being used. Section \ref{section:results-discussion} discusses the results of feature analysis of linguistic features, PCA and KMeans analysis on the collected features, and a comparison between machine learning and neural network approaches for classification. Section \ref{conclusion} covers our contributions, limitations and future work, and attributions for the work.
 
-\gtododhruv{Can you summarise the sections in the article, i.e. something like, not sure if this is a bit plain atm, but maybe Jim or Dhruv will have a better idea?: The structure of our report is as follows: we discuss related work in \ref{section:related_work}, methodologies in \ref{section:methods}, experimental set up in \ref{section:experimental-setup}, results and discussion in \ref{section:results-discussion}, and conclusion in \ref{conclusion}}
+Through this research, we have analysed and determined the most effective linguistic features for fake news detection and shown that the use of similarity as a metric is effective in building upon these current metrics to increase accuracy. We have also compared the use of the similarity metric with different machine learning classifiers and discovered that it greatly increases the accuracy of less complex machine learning methods and brings their performance in line with complex models.
 
 \newsection{Related work}\label{section:related_work}
 
@@ -698,6 +698,12 @@ Table \ref{machine-learning-results} shows the results for the four machine lear
 \newsection{Conclusion}\label{conclusion}
 
 \todoany{Summarise the study and discuss directions for future improvement}
+
+\newsubsection{Summary of Contributions}
+
+Through this work, we show that real-time contextual information in the form of similarity scores with related articles is effective in distinguishing between real and fake news. Additionally, through our analysis into a range of linguistic features, we collate the features that provide the highest distinction between fake and real articles, along with visualisations and classification models based on them.
+
+Our work brings a more in-depth study of linguistic features and literature to find the most effective one. It builds upon the limitations of previous similarity models including the lack of relevant between context articles and the queried article, the usage of only the title rather than full body of text, and the focus on only one main type of feature rather than a study of linguistic and similarity techniques together.
 
 \newsubsection{Attributions}
 
