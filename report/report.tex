@@ -420,8 +420,8 @@ Past research by Alsuliman et al. in~\cite{alsuliman2022social} proposes three d
   \textbf{Word app:}\quad Calculated as the number of unique common words between the prediction and the context articles divided by the number of unique words in the context article. Given that \texttt{$input_{unique}$} is the set of unique words in the input document, \texttt{$context_{unique}$} is the set of unique words in the context document. The formula is as follows:
   \[\frac{\left|input_{unique} \cap context_{unique}\right|}{\left|context_{unique}\right|}\]
 
-  \textbf{Matching score:}\quad Calculated as the sum of the unique common words between the prediction and the context article vectorized, divided by the sum of the vectorized unique words in the context article. Given that \texttt{$input_{unique}$} is the set of unique words in the input document, \texttt{$context_{unique}$} is the set of unique words in the context document, \texttt{vec(x)} is a function which vectorises the set of words $x$, and $sum(x) = \sum_{i=1}^n x_i$ , the formula is as follows:
-  \[\frac{sum(vec(input_{unique} \cap context_{unique}))}{sum(vec(context_{unique}))}\]
+  \textbf{Matching score:}\quad Calculated as the L1 norm of the vector of the unique common words between the prediction and the context article, divided by L1 norm of vectorized unique words in the context article. Given that \texttt{$input_{unique}$} is the set of unique words in the input document, \texttt{$context_{unique}$} is the set of unique words in the context document, \texttt{vec(x)} is a function which vectorises the set of words $x$, the formula is as follows:
+  \[\frac{\lVert vec(input_{unique} \cap context_{unique}) \rVert_1}{\lVert vec(context_{unique}) \rVert_1}\]
 
   \textbf{Harmonic mean~\cite{harmonic_mean}:}\quad Calculated by the following formula :
   \[\bar{x}_H = \frac{n}{\sum^n_{i=1}\frac{1}{x_i}}\]
@@ -521,7 +521,7 @@ This allows for a fair assessment of both the quantity and quality of the predic
 \newsection{Results and discussion}\label{section:results-discussion}
 
 \subsection{Feature Analysis}
-\subsubsection{Non-Latent Feature Selection}
+\subsubsection{Non-Latent Feature Selection}\label{section:non-latent-analysis}
 
 We see that the majority of our features have a value that falls into the range of $0.1~10$. Several quantity and some diversity features are in the higher range of $100~1000$. A box plot showing the means and standard deviations of all our features can be found in Figure~\ref{appendix:feature-box-plot} in the Appendix.
 
@@ -710,7 +710,7 @@ We thank Horne \& Adali for providing the base dataset in their research~\cite{h
 
 Lastly the team has used open source software as part of developing our software. The licenses and links to the open source projects have been included in and \verb|ATTRIBUTIONS| file which has been distributed alongside this report.
 
-\newsubsection{Limitations and Future Work}
+\newsubsection{Limitations and Future Work}\label{section:limitation}
 
 \subsubsection*{Preprocessing and tokenization}\label{limitation:preprocessing}
 
@@ -814,7 +814,7 @@ In the project proposal, Dhruv contributed equally with the team. In the literat
 \subsection{Duke}
 Duke contributed to the project particularly in the sections of non-latent features, and similarity model (article vectorisation, similarity metric calculation, similarity metric selection, comparison results) and the EDA (exploratory data analysis) notebook, and the associated code and plots. At the start of the project, Duke contributed to the similarity model (article vectorisation, similarity metric calculation). Towards the end of the project, Duke contributed to the similarity model (similarity metric selection, comparison results), and the methodology and results for non-latent feature extraction and analysis, as well as the EDA.
 
-In the project proposal, Duke contributed equally with the team. In the literature review, Duke reviewed the literature on datasets, features, evaluation, and model performance in fake news detection. In the project demo, Duke contributed mainly to the features section (BERT, Non-latent, Similarity metrics). In the report, Duke contributed to Sections \ref{section:bert}, \ref{section:non-latent-feat}, \ref{section:article-vectorisation}, \ref{section:similarity-metric}, \ref{section:similarity-metric-selection}, \ref{section:similarity-results}, and BERT, non-latent features and similarity metrics section in results and limitations, and Appendices \ref{appendix:word-count-histogram}, \ref{appendix:non-latent-feats}, \ref{appendix:correlation-matrx}, \ref{appendix:non-latent-anova}.
+In the project proposal, Duke contributed equally with the team. In the literature review, Duke reviewed the literature on datasets, features, evaluation, and model performance in fake news detection. In the project demo, Duke contributed mainly to the features section (BERT, Non-latent, Similarity metrics). In the report, Duke contributed to Sections \ref{section:bert}, \ref{section:non-latent-feat}, \ref{section:article-vectorisation}, \ref{section:similarity-metric}, \ref{section:similarity-metric-selection}, \ref{section:non-latent-analysis}, \ref{section:similarity-results}, and BERT, non-latent features and similarity metrics section in limitations and future work (section \ref:limitation), and Appendices \ref{appendix:word-count-histogram}, \ref{appendix:non-latent-feats}, \ref{appendix:correlation-matrx}, \ref{appendix:non-latent-anova}.
 
 \newsection{Article scraping}\label{appendix:article-scraping}
 
