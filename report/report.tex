@@ -510,7 +510,7 @@ To evaluate our classification models, we will use accuracy and F1 score. These 
 
 Accuracy is measured as the proportion of the total number of correctly classified samples over the total count of samples. Mathematically this is represented as
 $$\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN},$$
-where $TP,TN,FP,FN$ refers to the true and false positive and negative. Accuracy is an effective metric for this analysis as it is a holistic measure of the model's ability to identify a real article as \texttt{REAL} and a fake article as \texttt{FAKE}, which is the core component of the problem of fake news detection.
+where $TP,TN,FP,FN$ refers to the true and false, positive and negative. Accuracy is an effective metric for this analysis as it is a holistic measure of the model's ability to identify a real article as \texttt{REAL} and a fake article as \texttt{FAKE}, which is the core component of the problem of fake news detection.
 Our dataset is quite balanced so this will be a good general first step measure.
 
 Recall refers to how likely the model is able to identify an article is real when its ground truth is real. Precision is a measure of the proportion of all articles the model predicts to be real that have a ground truth of real. As such, recall is a measure of the quantity of the predictions whereas precision is a measure of the quality of the predictions. We are focusing on F1-score as it is the harmonic mean of recall and precision where
@@ -535,7 +535,8 @@ After applying ANOVA, we identify that the removed features account to almost ha
 \end{figure}
 
 \subsubsection{Similarity Metrics Comparison} \label{section:similarity-results}
-\begin{figure}[h]
+
+\begin{figure}
   \centering
   \includegraphics[width=\textwidth]{img/textual_relevance_3.png}
   \caption{Similarity metrics comparison results. Each plot contains the name of the vectoriser, the similarity metric, and $\delta \mu$, JSD (Jensen-Shannon Distance), and p-value when ANOVA is perform with the metrics as dependent variables against the labels which are independent variables. The red distribution is the dependent variable when the label is label \texttt{FAKE}, and the green distribution is the dependent variable when the label is \texttt{REAL}}
@@ -615,7 +616,7 @@ For our analysis, we will be comparing the top 3 performing machine learning met
   \item BERT, linguistic and similarity features.
 \end{enumerate}
 
-\begin{figure}[]
+\begin{figure}
   \centering
   \includegraphics[scale=0.7]{img/accuracy_combined_graph.png}
   \caption{Accuracy and F1-score metrics for top performing models across different features}
@@ -702,14 +703,6 @@ Through this work, we show that real-time contextual information in the form of 
 
 Our work brings a more in-depth study of linguistic features and literature to find the most effective one. It builds upon the limitations of previous similarity models including the lack of relevant between context articles and the queried article, the usage of only the title rather than full body of text, and the focus on only one main type of feature rather than a study of linguistic and similarity techniques together.
 
-\newsubsection{Attributions}
-
-First and foremost, we thank Professor Yang Song and Maurice Pagnucco, and Wenbin Wang, for providing various insights and suggestions to our research.
-
-We thank Horne \& Adali for providing the base dataset in their research~\cite{horne2017} to which we provided extensions to. We also acknowledge all related works which we have used to experiment with our features.
-
-Lastly the team has used open source software as part of developing our software. The licenses and links to the open source projects have been included in and \verb|ATTRIBUTIONS| file which has been distributed alongside this report.
-
 \newsubsection{Limitations and Future Work}\label{section:limitation}
 
 \subsubsection*{Preprocessing and tokenization}\label{limitation:preprocessing}
@@ -768,6 +761,14 @@ For the scope of our research, we used a fairly small dataset to present our con
 
 In the future research could be done to provide an automated API for scraping which would have allowed for a much larger dataset to be used that covers multiple world events across different years. Along with this, masking out event specific words could have been done to reduce learning of event specifics.
 
+\newsubsection{Attributions}
+
+First and foremost, we thank Professor Yang Song and Maurice Pagnucco, and Wenbin Wang, for providing various insights and suggestions to our research.
+
+We thank Horne \& Adali for providing the base dataset in their research~\cite{horne2017} to which we provided extensions to. We also acknowledge all related works which we have used to experiment with our features.
+
+Lastly the team has used open source software as part of developing our software. The licenses and links to the open source projects have been included in and \verb|ATTRIBUTIONS| file which has been distributed alongside this report.
+
 \cleardoublepage
 \pagebreak
 
@@ -814,7 +815,7 @@ In the project proposal, Dhruv contributed equally with the team. In the literat
 \subsection{Duke}
 Duke contributed to the project particularly in the sections of non-latent features, and similarity model (article vectorisation, similarity metric calculation, similarity metric selection, comparison results) and the EDA (exploratory data analysis) notebook, and the associated code and plots. At the start of the project, Duke contributed to the similarity model (article vectorisation, similarity metric calculation). Towards the end of the project, Duke contributed to the similarity model (similarity metric selection, comparison results), and the methodology and results for non-latent feature extraction and analysis, as well as the EDA.
 
-In the project proposal, Duke contributed equally with the team. In the literature review, Duke reviewed the literature on datasets, features, evaluation, and model performance in fake news detection. In the project demo, Duke contributed mainly to the features section (BERT, Non-latent, Similarity metrics). In the report, Duke contributed to Sections \ref{section:bert}, \ref{section:non-latent-feat}, \ref{section:article-vectorisation}, \ref{section:similarity-metric}, \ref{section:similarity-metric-selection}, \ref{section:non-latent-analysis}, \ref{section:similarity-results}, and BERT, non-latent features and similarity metrics section in limitations and future work (section \ref:limitation), and Appendices \ref{appendix:word-count-histogram}, \ref{appendix:non-latent-feats}, \ref{appendix:correlation-matrx}, \ref{appendix:non-latent-anova}.
+In the project proposal, Duke contributed equally with the team. In the literature review, Duke reviewed the literature on datasets, features, evaluation, and model performance in fake news detection. In the project demo, Duke contributed mainly to the features section (BERT, Non-latent, Similarity metrics). In the report, Duke contributed to Sections \ref{section:bert}, \ref{section:non-latent-feat}, \ref{section:article-vectorisation}, \ref{section:similarity-metric}, \ref{section:similarity-metric-selection}, \ref{section:non-latent-analysis}, \ref{section:similarity-results}, and BERT, non-latent features and similarity metrics section in limitations and future work (section \ref{section:limitation}), and Appendices \ref{appendix:word-count-histogram}, \ref{appendix:non-latent-feats}, \ref{appendix:correlation-matrx}, \ref{appendix:non-latent-anova}.
 
 \newsection{Article scraping}\label{appendix:article-scraping}
 
@@ -941,7 +942,7 @@ In the project proposal, Duke contributed equally with the team. In the literatu
                                    & Flesch Reading Ease                  &                           & div\_flesch\_sum            \\ \hline
 \end{longtable}
 
-\begin{figure}[h]
+\begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{img/non_latent_box_plot.png}
   \caption{Box Plot of Non-Latent Box Plot Features, displaying the Median, Interquartile Range (IQR), Minimum, Maximum, does not display Outliers which would inflate plot size. Each subplot contains features with mean $\mu$ in the corresponding powers of 10.}
