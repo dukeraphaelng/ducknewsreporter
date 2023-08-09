@@ -168,9 +168,9 @@ class SimilarityModel():
         return np.mean(out)
 
     def matching_score(self, prediction, contexts):
-        '''Calculate the vector value for the unique common words in the prediction
-        doc and context doc divided by the summed vector value of the unique words in
-        context document
+        '''Calculate the L1 norm vector value for the unique common words in the prediction
+        doc and context doc divided by the L1 norm vector value of the unique words in
+        context document. Note we can only use TF-IDF vectorizer.
 
         Parameters
         ----------
@@ -193,6 +193,7 @@ class SimilarityModel():
         for context in contexts:
             unique_context_words = set(context)
             common_words = unique_predict_words.intersection(unique_context_words)
+            # Assumes TF-IDF vectorizer with vector value >= 0
             out.append(np.sum(self.vectorizer(common_words)) / np.sum(self.vectorizer(unique_context_words)))
 
         return np.mean(out)
